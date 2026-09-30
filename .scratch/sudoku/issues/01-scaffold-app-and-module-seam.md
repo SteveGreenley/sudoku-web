@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] Running the dev server shows a page with a 9×9 empty board, heavier borders around each box, and a header
 - [x] The board is rendered from the game-logic module's state by a presentation layer that contains no game rules
