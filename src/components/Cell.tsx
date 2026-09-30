@@ -1,3 +1,5 @@
+import { SIZE } from "@/game";
+
 interface CellProps {
   index: number;
   value: number;
@@ -7,8 +9,8 @@ interface CellProps {
 }
 
 export function Cell({ index, value, isGiven, isSelected, onSelect }: CellProps) {
-  const row = Math.floor(index / 9);
-  const col = index % 9;
+  const row = Math.floor(index / SIZE);
+  const col = index % SIZE;
   const right =
     col === 2 || col === 5 || col === 8
       ? "border-r-2 border-r-zinc-800"

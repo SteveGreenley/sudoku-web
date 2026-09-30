@@ -1,15 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { createInitialState, erase, place, select, toggleNote } from "./index";
+import {
+  CELLS,
+  createInitialState,
+  erase,
+  place,
+  select,
+  toggleNote,
+} from "./index";
 
 describe("createInitialState", () => {
   it("returns the full game state shape with an empty board", () => {
     const state = createInitialState();
     expect(state).toEqual({
       difficulty: null,
-      givens: Array(81).fill(false),
-      solution: Array(81).fill(0),
-      board: Array(81).fill(0),
-      notes: Array.from({ length: 81 }, () => []),
+      givens: Array(CELLS).fill(false),
+      solution: Array(CELLS).fill(0),
+      board: Array(CELLS).fill(0),
+      notes: Array.from({ length: CELLS }, () => []),
       selected: null,
       notesMode: false,
       elapsedMs: 0,
@@ -33,7 +40,7 @@ describe("select", () => {
 
   it("leaves state unchanged for an out-of-range cell", () => {
     const state = createInitialState();
-    expect(select(state, 81)).toBe(state);
+    expect(select(state, CELLS)).toBe(state);
     expect(select(state, -1)).toBe(state);
   });
 });
@@ -62,7 +69,7 @@ describe("place", () => {
 
   it("ignores out-of-range cells and values outside 1-9", () => {
     const state = createInitialState();
-    expect(place(state, 81, 1)).toBe(state);
+    expect(place(state, CELLS, 1)).toBe(state);
     expect(place(state, 0, 0)).toBe(state);
     expect(place(state, 0, 10)).toBe(state);
   });
@@ -115,13 +122,13 @@ describe("erase", () => {
 });
 
 function withCell(index: number, value: number): number[] {
-  const arr = Array(81).fill(0) as number[];
+  const arr = Array(CELLS).fill(0) as number[];
   arr[index] = value;
   return arr;
 }
 
 function withNotes(index: number, notes: number[]): number[][] {
-  return Array.from({ length: 81 }, (_, i) =>
+  return Array.from({ length: CELLS }, (_, i) =>
     i === index ? [...notes] : [],
   );
 }
