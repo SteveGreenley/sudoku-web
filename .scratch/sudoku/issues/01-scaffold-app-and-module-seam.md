@@ -6,8 +6,12 @@
 
 **Status:** ready-for-agent
 
-- [ ] Running the dev server shows a page with a 9×9 empty board, heavier borders around each box, and a header
-- [ ] The board is rendered from the game-logic module's state by a presentation layer that contains no game rules
-- [ ] The module exposes the full game state shape and the action-function seam (placement, notes, erase, selection), even where behaviour is minimal
-- [ ] The test runner works and at least one test asserts module behaviour (state in → state out), with no test touching React components
-- [ ] The page requires no network, account, or server-side logic
+- [x] Running the dev server shows a page with a 9×9 empty board, heavier borders around each box, and a header
+- [x] The board is rendered from the game-logic module's state by a presentation layer that contains no game rules
+- [x] The module exposes the full game state shape and the action-function seam (placement, notes, erase, selection), even where behaviour is minimal
+- [x] The test runner works and at least one test asserts module behaviour (state in → state out), with no test touching React components
+- [x] The page requires no network, account, or server-side logic
+
+## Comments
+
+- 2026-09-30: Implemented. Next.js 16 (App Router, TS, Tailwind v4) SPA; pure game-logic module at `src/game/` (state shape + select/place/toggleNote/erase); thin presentation layer at `src/components/`; Vitest at the module seam (13 tests). Dev server render and static production build verified.
