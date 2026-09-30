@@ -20,7 +20,7 @@ export function Cell({ index, value, isGiven, isSelected, onSelect }: CellProps)
       ? "border-b-2 border-b-zinc-800"
       : "border-b border-b-zinc-300";
   const fill = isSelected ? "bg-blue-200" : "bg-white hover:bg-zinc-100";
-  const text = isGiven ? "text-zinc-900" : "text-blue-600";
+  const text = isGiven ? "font-semibold text-zinc-900" : "text-blue-600";
 
   return (
     <button

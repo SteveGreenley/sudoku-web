@@ -1,12 +1,48 @@
 import { describe, expect, it } from "vitest";
 import {
   CELLS,
+  countSolutions,
   createInitialState,
   erase,
+  generatePuzzle,
+  isValidGrid,
   place,
+  REMOVAL_BUDGET,
   select,
+  startGame,
   toggleNote,
+  type Difficulty,
+  type Rng,
 } from "./index";
+
+const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "expert"];
+
+function seededRng(seed: number): Rng {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function puzzleGrid(givens: boolean[], solution: number[]): number[] {
+  return solution.map((value, i) => (givens[i] ? value : 0));
+}
+
+// A known-complete classic grid (the solution of the classic 17-clue layout).
+const KNOWN_SOLUTION = [
+  5, 3, 4, 6, 7, 8, 9, 1, 2,
+  6, 7, 2, 1, 9, 5, 3, 4, 8,
+  1, 9, 8, 3, 4, 2, 5, 6, 7,
+  8, 5, 9, 7, 6, 1, 4, 2, 3,
+  4, 2, 6, 8, 5, 3, 7, 9, 1,
+  7, 1, 3, 9, 2, 4, 8, 5, 6,
+  9, 6, 1, 5, 3, 7, 2, 8, 4,
+  8, 2, 7, 4, 1, 9, 6, 3, 5,
+  3, 4, 5, 2, 8, 6, 1, 7, 9,
+];
 
 describe("createInitialState", () => {
   it("returns the full game state shape with an empty board", () => {
@@ -118,6 +154,103 @@ describe("erase", () => {
     state.givens[12] = true;
     state.board[12] = 4;
     expect(erase(state, 12)).toBe(state);
+  });
+});
+
+describe("countSolutions", () => {
+  it("counts one solution for a complete valid grid", () => {
+    expect(countSolutions(KNOWN_SOLUTION, 2)).toBe(1);
+  });
+
+  it("stops counting at the limit for a grid with many solutions", () => {
+    expect(countSolutions(Array(CELLS).fill(0), 2)).toBe(2);
+  });
+});
+
+describe("generatePuzzle", () => {
+  it("returns a complete valid solution and a valid partial grid of givens", () => {
+    for (const difficulty of DIFFICULTIES) {
+      const { givens, solution } = generatePuzzle(difficulty, seededRng(1));
+      expect(solution.every((v) => v >= 1 && v <= 9)).toBe(true);
+      expect(isValidGrid(solution)).toBe(true);
+      expect(isValidGrid(puzzleGrid(givens, solution))).toBe(true);
+    }
+  });
+
+  it("produces a puzzle with exactly one solution", () => {
+    for (const seed of [1, 2, 3, 4, 5]) {
+      for (const difficulty of DIFFICULTIES) {
+        const { givens, solution } = generatePuzzle(difficulty, seededRng(seed));
+        expect(countSolutions(puzzleGrid(givens, solution), 2)).toBe(1);
+      }
+    }
+  });
+
+  it("uses a per-difficulty removal budget: easy removes the fewest, expert the most", () => {
+    const removals = (difficulty: Difficulty) =>
+      generatePuzzle(difficulty, seededRng(42)).givens.filter((g) => !g).length;
+    const counts = DIFFICULTIES.map(removals);
+    // budgets strictly increase with difficulty
+    const budgets = DIFFICULTIES.map((d) => REMOVAL_BUDGET[d]);
+    for (let i = 1; i < budgets.length; i++) {
+      expect(budgets[i]).toBeGreaterThan(budgets[i - 1]);
+    }
+    // generated removals never exceed the budget
+    DIFFICULTIES.forEach((d, i) => {
+      expect(counts[i]).toBeLessThanOrEqual(REMOVAL_BUDGET[d]);
+    });
+    // every difficulty leaves a real puzzle, and same seed keeps removals monotone
+    for (let i = 1; i < counts.length; i++) {
+      expect(counts[i]).toBeGreaterThanOrEqual(counts[i - 1]);
+      expect(counts[i]).toBeGreaterThanOrEqual(30);
+    }
+  });
+
+  it("is deterministic for a given seed and varies across seeds", () => {
+    const a = generatePuzzle("hard", seededRng(7));
+    const b = generatePuzzle("hard", seededRng(7));
+    const c = generatePuzzle("hard", seededRng(8));
+    expect(a).toEqual(b);
+    expect(a.solution).not.toEqual(c.solution);
+  });
+});
+
+describe("startGame", () => {
+  it("starts a playing game at the chosen difficulty", () => {
+    const state = startGame("hard", seededRng(7));
+    expect(state.difficulty).toBe("hard");
+    expect(state.status).toBe("playing");
+    expect(state.elapsedMs).toBe(0);
+    expect(state.selected).toBeNull();
+    expect(state.notesMode).toBe(false);
+  });
+
+  it("pre-fills the board with the givens and leaves other cells empty", () => {
+    const state = startGame("medium", seededRng(11));
+    state.givens.forEach((isGiven, i) => {
+      expect(state.board[i]).toBe(isGiven ? state.solution[i] : 0);
+    });
+    expect(state.board.some((v) => v === 0)).toBe(true);
+  });
+
+  it("carries the full solution in state", () => {
+    const state = startGame("expert", seededRng(13));
+    expect(state.solution.every((v) => v >= 1 && v <= 9)).toBe(true);
+    expect(isValidGrid(state.solution)).toBe(true);
+    const { givens } = generatePuzzle("expert", seededRng(13));
+    expect(state.givens).toEqual(givens);
+    expect(countSolutions(state.board, 2)).toBe(1);
+  });
+
+  it("generates a fresh puzzle per seed", () => {
+    const a = startGame("easy", seededRng(21));
+    const b = startGame("easy", seededRng(22));
+    expect(a.board).not.toEqual(b.board);
+  });
+
+  it("stays JSON-safe", () => {
+    const state = startGame("hard", seededRng(23));
+    expect(JSON.parse(JSON.stringify(state))).toEqual(state);
   });
 });
 

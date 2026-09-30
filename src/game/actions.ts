@@ -1,4 +1,5 @@
-import { CELLS, type GameState } from "./state";
+import { generatePuzzle, type Rng } from "./generator";
+import { CELLS, createInitialState, type Difficulty, type GameState } from "./state";
 
 function validCell(cell: number): boolean {
   return Number.isInteger(cell) && cell >= 0 && cell < CELLS;
@@ -51,4 +52,15 @@ export function erase(state: GameState, cell: number): GameState {
   next.board[cell] = 0;
   next.notes[cell] = [];
   return next;
+}
+
+export function startGame(difficulty: Difficulty, rng: Rng = Math.random): GameState {
+  const { givens, solution } = generatePuzzle(difficulty, rng);
+  return {
+    ...createInitialState(),
+    difficulty,
+    givens,
+    solution: [...solution],
+    board: solution.map((value, i) => (givens[i] ? value : 0)),
+  };
 }
