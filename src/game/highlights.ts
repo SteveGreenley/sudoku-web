@@ -1,4 +1,4 @@
-import type { GameState } from "./state";
+import { CELLS, SIZE, type GameState } from "./state";
 
 export interface HighlightSet {
   highlighted: Set<number>;
@@ -32,7 +32,6 @@ export function computeHighlights(state: GameState): HighlightSet | null {
   const selectedValue = state.board[selected];
   if (selectedValue !== 0) {
     for (let i = 0; i < 81; i++) {
-      if (i === selected) continue;
       if (state.board[i] === selectedValue) {
         bold.add(i);
       }
@@ -40,4 +39,20 @@ export function computeHighlights(state: GameState): HighlightSet | null {
   }
 
   return { highlighted, bold };
+}
+
+export function getDisabledNumbers(state: GameState): Set<number> {
+  const disabled = new Set<number>();
+  for (let value = 1; value <= 9; value++) {
+    let count = 0;
+    for (let i = 0; i < CELLS; i++) {
+      if (state.board[i] === value) {
+        count++;
+      }
+    }
+    if (count >= SIZE) {
+      disabled.add(value);
+    }
+  }
+  return disabled;
 }

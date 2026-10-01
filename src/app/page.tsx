@@ -13,6 +13,7 @@ import {
   createInitialState,
   discardState,
   erase,
+  getDisabledNumbers,
   getLastDifficulty,
   loadState,
   place,
@@ -272,6 +273,7 @@ export default function Page() {
         onPlace={padOnPlace}
         onToggleNote={padOnToggleNote}
         selectedCell={state.selected}
+        disabledNumbers={getDisabledNumbers(state)}
       />
       {state.status === "solved" && (
         <SolvedOverlay

@@ -1,4 +1,5 @@
 import { generatePuzzle, type Rng } from "./generator";
+import { getDisabledNumbers } from "./highlights";
 import {
   CELLS,
   createInitialState,
@@ -61,6 +62,8 @@ export function checkWin(state: GameState): GameState {
 export function place(state: GameState, cell: number, value: number): GameState {
   if (!validCell(cell) || !validValue(value)) return state;
   if (state.givens[cell]) return state;
+  const disabled = getDisabledNumbers(state);
+  if (disabled.has(value)) return state;
   const next = copy(startGameTimer(state));
   next.board[cell] = value;
   next.notes[cell] = [];

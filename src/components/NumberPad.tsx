@@ -3,6 +3,7 @@ interface NumberPadProps {
   onPlace: (value: number) => void;
   onToggleNote?: (value: number) => void;
   selectedCell: number | null;
+  disabledNumbers?: Set<number>;
 }
 
 export function NumberPad({
@@ -10,6 +11,7 @@ export function NumberPad({
   onPlace,
   onToggleNote,
   selectedCell,
+  disabledNumbers = new Set(),
 }: NumberPadProps) {
   return (
     <div
@@ -17,24 +19,32 @@ export function NumberPad({
       role="group"
       aria-label="Number pad"
     >
-      {Array.from({ length: 9 }, (_, i) => i + 1).map((num) => (
-        <button
-          key={num}
-          type="button"
-          onClick={() => {
-            if (selectedCell === null) return;
-            if (notesMode && onToggleNote) {
-              onToggleNote(num);
-            } else {
-              onPlace(num);
-            }
-          }}
-          aria-label={`Place number ${num}`}
-          className="flex h-12 w-12 items-center justify-center rounded-md border border-zinc-300 bg-white text-xl font-medium text-blue-600 shadow-sm transition-colors hover:bg-zinc-100"
-        >
-          {num}
-        </button>
-      ))}
+      {Array.from({ length: 9 }, (_, i) => i + 1).map((num) => {
+        const isDisabled = disabledNumbers.has(num);
+        const baseClasses = "flex h-12 w-12 items-center justify-center rounded-md border text-xl font-medium shadow-sm transition-colors";
+        const enabledClasses = "border-zinc-300 bg-white text-blue-600 hover:bg-zinc-100";
+        const disabledClasses = "cursor-not-allowed border-zinc-200 bg-zinc-100 opacity-40";
+        const classes = isDisabled ? `${baseClasses} ${disabledClasses}` : `${baseClasses} ${enabledClasses}`;
+        return (
+          <button
+            key={num}
+            type="button"
+            disabled={isDisabled}
+            onClick={() => {
+              if (selectedCell === null) return;
+              if (notesMode && onToggleNote) {
+                onToggleNote(num);
+              } else {
+                onPlace(num);
+              }
+            }}
+            aria-label={`Place number ${num}`}
+            className={classes}
+          >
+            {num}
+          </button>
+        );
+      })}
     </div>
   );
 }
