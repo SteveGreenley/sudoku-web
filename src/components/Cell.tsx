@@ -9,6 +9,8 @@ interface CellProps {
   isSelected: boolean;
   isHighlighted: boolean;
   isSameNumber: boolean;
+  isSameNoteNumber: boolean;
+  selectedValue: number;
   onSelect: (cell: number) => void;
   onPlace?: (cell: number, value: number) => void;
 }
@@ -22,6 +24,8 @@ export function Cell({
   isSelected,
   isHighlighted,
   isSameNumber,
+  isSameNoteNumber,
+  selectedValue,
   onSelect,
   onPlace,
 }: CellProps) {
@@ -44,7 +48,7 @@ export function Cell({
   const isMistake =
     value !== 0 && !isGiven && value !== solutionValue;
   const fontWeight = isSameNumber
-    ? "font-bold"
+    ? "font-black"
     : isGiven
       ? "font-semibold"
       : "font-normal";
@@ -80,7 +84,7 @@ export function Cell({
       ) : noteItems.length > 0 ? (
         <span className={noteGrid}>
           {noteItems.map((n) => (
-            <span key={n}>{n}</span>
+            <span key={n} className={isSameNoteNumber && n === selectedValue ? "font-black" : ""}>{n}</span>
           ))}
         </span>
       ) : null}

@@ -29,6 +29,8 @@ export function Board({
           isSelected={state.selected === index}
           isHighlighted={highlights?.highlighted.has(index) ?? false}
           isSameNumber={highlights?.bold.has(index) ?? false}
+          isSameNoteNumber={highlights?.boldNotes.has(index) ?? false}
+          selectedValue={state.board[state.selected ?? -1] ?? 0}
           onSelect={onSelectCell}
           onPlace={onPlace}
         />

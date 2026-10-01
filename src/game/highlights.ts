@@ -3,6 +3,7 @@ import { CELLS, SIZE, type GameState } from "./state";
 export interface HighlightSet {
   highlighted: Set<number>;
   bold: Set<number>;
+  boldNotes: Set<number>;
 }
 
 export function computeHighlights(state: GameState): HighlightSet | null {
@@ -38,7 +39,16 @@ export function computeHighlights(state: GameState): HighlightSet | null {
     }
   }
 
-  return { highlighted, bold };
+  const boldNotes = new Set<number>();
+  if (selectedValue !== 0) {
+    for (let i = 0; i < CELLS; i++) {
+      if (state.notes[i].includes(selectedValue)) {
+        boldNotes.add(i);
+      }
+    }
+  }
+
+  return { highlighted, bold, boldNotes };
 }
 
 export function getDisabledNumbers(state: GameState): Set<number> {
