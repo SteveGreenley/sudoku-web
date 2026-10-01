@@ -264,7 +264,6 @@ export default function Page() {
       <Controls
         notesMode={state.notesMode}
         onToggleNotesMode={() => setState((s) => ({ ...s, notesMode: !s.notesMode }))}
-        onErase={onErase}
         onNewGame={handleNewGamePrompt}
       />
       <Board state={state} onSelectCell={onSelectCell} onPlace={onPlace} />
@@ -272,6 +271,7 @@ export default function Page() {
         notesMode={state.notesMode}
         onPlace={padOnPlace}
         onToggleNote={padOnToggleNote}
+        onErase={onErase}
         selectedCell={state.selected}
         disabledNumbers={getDisabledNumbers(state)}
       />
