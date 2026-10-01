@@ -19,15 +19,35 @@ function copy(state: GameState): GameState {
 
 export function select(state: GameState, cell: number): GameState {
   if (!validCell(cell)) return state;
+  if (state.status !== "playing") return state;
   const next = copy(state);
   next.selected = cell;
+  return next;
+}
+
+export function startGameTimer(state: GameState): GameState {
+  if (state.status !== "playing" || state.elapsedMs > 0 || state.startTime !== undefined) {
+    return state;
+  }
+  const next = copy(state);
+  next.startTime = Date.now();
+  return next;
+}
+
+export function checkWin(state: GameState): GameState {
+  if (state.status !== "playing") return state;
+  for (let i = 0; i < CELLS; i++) {
+    if (state.board[i] !== state.solution[i]) return state;
+  }
+  const next = copy(state);
+  next.status = "solved";
   return next;
 }
 
 export function place(state: GameState, cell: number, value: number): GameState {
   if (!validCell(cell) || !validValue(value)) return state;
   if (state.givens[cell]) return state;
-  const next = copy(state);
+  const next = copy(startGameTimer(state));
   next.board[cell] = value;
   next.notes[cell] = [];
   // Auto-erase: remove this number from notes of cells in same row, column, box
@@ -47,13 +67,13 @@ export function place(state: GameState, cell: number, value: number): GameState 
       next.notes[i] = next.notes[i].filter((n) => n !== value);
     }
   }
-  return next;
+  return checkWin(next);
 }
 
 export function toggleNote(state: GameState, cell: number, value: number): GameState {
   if (!validCell(cell) || !validValue(value)) return state;
   if (state.givens[cell] || state.board[cell] !== 0) return state;
-  const next = copy(state);
+  const next = copy(startGameTimer(state));
   const notes = next.notes[cell];
   next.notes[cell] = notes.includes(value)
     ? notes.filter((n) => n !== value)
@@ -65,7 +85,7 @@ export function erase(state: GameState, cell: number): GameState {
   if (!validCell(cell)) return state;
   if (state.givens[cell]) return state;
   if (state.board[cell] === 0 && state.notes[cell].length === 0) return state;
-  const next = copy(state);
+  const next = copy(startGameTimer(state));
   if (next.board[cell] !== 0) {
     next.board[cell] = 0;
   } else {
@@ -82,5 +102,6 @@ export function startGame(difficulty: Difficulty, rng: Rng = Math.random): GameS
     givens,
     solution: [...solution],
     board: solution.map((value, i) => (givens[i] ? value : 0)),
+    startTime: undefined,
   };
 }

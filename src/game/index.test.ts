@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CELLS,
+  checkWin,
   computeHighlights,
   countSolutions,
   createInitialState,
@@ -11,6 +12,7 @@ import {
   REMOVAL_BUDGET,
   select,
   startGame,
+  startGameTimer,
   toggleNote,
   type Difficulty,
   type Rng,
@@ -57,6 +59,7 @@ describe("createInitialState", () => {
       selected: null,
       notesMode: false,
       elapsedMs: 0,
+      startTime: undefined,
       status: "playing",
     });
   });
@@ -268,12 +271,71 @@ describe("generatePuzzle", () => {
   });
 });
 
+describe("startGameTimer", () => {
+  it("sets startTime on first call", () => {
+    const state = createInitialState();
+    expect(state.startTime).toBeUndefined();
+    const next = startGameTimer(state);
+    expect(next.startTime).toBeDefined();
+  });
+
+  it("does not modify state if game already started", () => {
+    const state = startGameTimer(createInitialState());
+    const next = startGameTimer(state);
+    expect(next).toBe(state);
+  });
+
+  it("does not modify state if game is solved", () => {
+    const solvedState = { ...createInitialState(), status: "solved" as const };
+    const next = startGameTimer(solvedState);
+    expect(next).toBe(solvedState);
+  });
+});
+
+describe("checkWin", () => {
+  it("sets status to solved when board equals solution", () => {
+    const state = startGame("medium", seededRng(7));
+    const completeState = {
+      ...state,
+      board: [...state.solution],
+    };
+    const next = checkWin(completeState);
+    expect(next.status).toBe("solved");
+  });
+
+  it("does not win when board has a mistake", () => {
+    const state = startGame("medium", seededRng(7));
+    const incompleteBoard = [...state.solution];
+    incompleteBoard[5] = (state.solution[5] % 9) + 1;
+    const incompleteState = {
+      ...state,
+      board: incompleteBoard,
+    };
+    const next = checkWin(incompleteState);
+    expect(next.status).toBe("playing");
+  });
+
+  it("does not win when board is incomplete", () => {
+    const state = startGame("medium", seededRng(7));
+    const partialState = { ...state };
+    const next = checkWin(partialState);
+    expect(next.status).toBe("playing");
+  });
+
+  it("does not modify state if game is already solved", () => {
+    const solvedState = { ...createInitialState(), status: "solved" as const };
+    const next = checkWin(solvedState);
+    expect(next).toBe(solvedState);
+  });
+});
+
 describe("startGame", () => {
   it("starts a playing game at the chosen difficulty", () => {
     const state = startGame("hard", seededRng(7));
     expect(state.difficulty).toBe("hard");
     expect(state.status).toBe("playing");
     expect(state.elapsedMs).toBe(0);
+    expect(state.startTime).toBeUndefined();
     expect(state.selected).toBeNull();
     expect(state.notesMode).toBe(false);
   });

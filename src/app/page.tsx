@@ -6,7 +6,9 @@ import { Controls } from "@/components/Controls";
 import { DifficultyPicker } from "@/components/DifficultyPicker";
 import { Header } from "@/components/Header";
 import { NumberPad } from "@/components/NumberPad";
+import { SolvedOverlay } from "@/components/SolvedOverlay";
 import {
+  checkWin,
   createInitialState,
   erase,
   place,
@@ -117,6 +119,28 @@ export default function Page() {
     [state.selected],
   );
 
+  useEffect(() => {
+    if (state.status !== "playing" || state.elapsedMs === 0 || state.startTime === undefined) {
+      return;
+    }
+    const interval = setInterval(() => {
+      setState((s) => {
+        if (s.status !== "playing" || s.elapsedMs === 0 || s.startTime === undefined) return s;
+        const elapsed = Date.now() - s.startTime;
+        const next = { ...s, elapsedMs: elapsed };
+        return checkWin(next);
+      });
+    }, 100);
+    return () => clearInterval(interval);
+  }, [state.status, state.elapsedMs, state.startTime]);
+
+  const handleNewGame = useCallback(
+    (d: Difficulty) => {
+      setDifficulty(d);
+    },
+    [],
+  );
+
   return (
     <main
       className="flex flex-1 flex-col items-center gap-6 py-10"
@@ -138,6 +162,13 @@ export default function Page() {
         onToggleNote={padOnToggleNote}
         selectedCell={state.selected}
       />
+      {state.status === "solved" && (
+        <SolvedOverlay
+          elapsedMs={state.elapsedMs}
+          difficulty={state.difficulty}
+          onNewGame={handleNewGame}
+        />
+      )}
     </main>
   );
 }

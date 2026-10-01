@@ -11,6 +11,7 @@ export interface GameState {
   selected: number | null;
   notesMode: boolean;
   elapsedMs: number;
+  startTime: number | undefined;
   status: Status;
 }
 
@@ -27,6 +28,7 @@ export function createInitialState(): GameState {
     selected: null,
     notesMode: false,
     elapsedMs: 0,
+    startTime: undefined,
     status: "playing",
   };
 }
