@@ -4,14 +4,18 @@
 
 **Blocked by:** 02 (Puzzle generation and new game)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Click/tap selects a cell, and the selected cell is visibly distinguishable
-- [ ] Arrow keys move the selection
-- [ ] The number pad is always visible (beside the board on desktop, below on mobile) and places a number in the selected cell
-- [ ] Keyboard 1–9 places a number in the selected cell
-- [ ] Placing a number clears the cell's notes and overwrites any existing placed number
-- [ ] Givens ignore placement
-- [ ] A placed number different from the solution for that cell renders red; a matching number renders normally
-- [ ] Mistake (red) state is derived from board vs solution, never stored
-- [ ] Placement rules are tested at the module seam (place, overwrite, givens untouchable, red derivation)
+- [x] Click/tap selects a cell, and the selected cell is visibly distinguishable
+- [x] Arrow keys move the selection (Up/Down/Left/Right)
+- [x] The number pad is always visible (below the board) and places a number in the selected cell
+- [x] Keyboard 1–9 places a number in the selected cell
+- [x] Placing a number clears the cell's notes and overwrites any existing placed number
+- [x] Givens ignore placement
+- [x] A placed number different from the solution for that cell renders red; a matching number renders normally (blue)
+- [x] Mistake (red) state is derived from board vs solution, never stored
+- [x] Placement rules are tested at the module seam (place, overwrite, givens untouchable, red derivation)
+
+## Comments
+
+- 2026-10-01: Implemented. `Cell.tsx` now derives mistake state: non-given values that don't match the solution render red (`text-red-500`), matching values render blue (`text-blue-600`). Givens remain `font-semibold text-zinc-900`. New `NumberPad.tsx` component renders 9 number buttons (1–9) below the board. `page.tsx` wired with `place()` action, keyboard handling (1–9 places, arrow keys navigate selection, backspace ready), and NumberPad integration. Lint passes, 24 tests pass.

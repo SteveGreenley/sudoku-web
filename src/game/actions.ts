@@ -1,5 +1,5 @@
 import { generatePuzzle, type Rng } from "./generator";
-import { CELLS, createInitialState, type Difficulty, type GameState } from "./state";
+import { CELLS, createInitialState, SIZE, type Difficulty, type GameState } from "./state";
 
 function validCell(cell: number): boolean {
   return Number.isInteger(cell) && cell >= 0 && cell < CELLS;
@@ -30,6 +30,23 @@ export function place(state: GameState, cell: number, value: number): GameState 
   const next = copy(state);
   next.board[cell] = value;
   next.notes[cell] = [];
+  // Auto-erase: remove this number from notes of cells in same row, column, box
+  const row = Math.floor(cell / SIZE);
+  const col = cell % SIZE;
+  for (let i = 0; i < CELLS; i++) {
+    if (i === cell) continue;
+    if (next.board[i] !== 0) continue;
+    const r = Math.floor(i / SIZE);
+    const c = i % SIZE;
+    const inSameRow = r === row;
+    const inSameCol = c === col;
+    const inSameBox =
+      Math.floor(r / 3) === Math.floor(row / 3) &&
+      Math.floor(c / 3) === Math.floor(col / 3);
+    if (inSameRow || inSameCol || inSameBox) {
+      next.notes[i] = next.notes[i].filter((n) => n !== value);
+    }
+  }
   return next;
 }
 
@@ -49,8 +66,11 @@ export function erase(state: GameState, cell: number): GameState {
   if (state.givens[cell]) return state;
   if (state.board[cell] === 0 && state.notes[cell].length === 0) return state;
   const next = copy(state);
-  next.board[cell] = 0;
-  next.notes[cell] = [];
+  if (next.board[cell] !== 0) {
+    next.board[cell] = 0;
+  } else {
+    next.notes[cell] = [];
+  }
   return next;
 }
 

@@ -4,9 +4,11 @@ import { Cell } from "./Cell";
 export function Board({
   state,
   onSelectCell,
+  onPlace,
 }: {
   state: GameState;
   onSelectCell: (cell: number) => void;
+  onPlace: (cell: number, value: number) => void;
 }) {
   return (
     <div
@@ -19,9 +21,12 @@ export function Board({
           key={index}
           index={index}
           value={value}
+          solutionValue={state.solution[index]}
           isGiven={state.givens[index]}
+          notes={state.notes[index]}
           isSelected={state.selected === index}
           onSelect={onSelectCell}
+          onPlace={onPlace}
         />
       ))}
     </div>
