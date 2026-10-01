@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Board } from "@/components/Board";
 import { Controls } from "@/components/Controls";
-import { DifficultyPicker } from "@/components/DifficultyPicker";
+
 import { Header } from "@/components/Header";
 import { NewGameDialog } from "@/components/NewGameDialog";
 import { NumberPad } from "@/components/NumberPad";
@@ -260,7 +260,6 @@ export default function Page() {
       tabIndex={-1}
     >
       <Header state={state} />
-      <DifficultyPicker value={isClient ? difficulty : state.difficulty ?? "easy"} onSelect={setDifficulty} />
       <Controls
         notesMode={state.notesMode}
         onToggleNotesMode={() => setState((s) => ({ ...s, notesMode: !s.notesMode }))}

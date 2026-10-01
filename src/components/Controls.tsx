@@ -1,3 +1,5 @@
+import type { Difficulty } from "@/game";
+
 interface NotesToggleProps {
   notesMode: boolean;
   onToggle: () => void;
@@ -30,7 +32,7 @@ export function Controls({
   notesMode,
   onToggleNotesMode,
   onNewGame,
-}: Omit<ControlsProps, "onErase">) {
+}: ControlsProps) {
   return (
     <div className="flex w-[min(90vw,432px)] items-center justify-center gap-2">
       <NotesToggle notesMode={notesMode} onToggle={onToggleNotesMode} />
