@@ -1,5 +1,19 @@
 import { generatePuzzle, type Rng } from "./generator";
-import { CELLS, createInitialState, SIZE, type Difficulty, type GameState } from "./state";
+import {
+  CELLS,
+  createInitialState,
+  SIZE,
+  type Difficulty,
+  type GameState,
+} from "./state";
+
+export interface StoragePort {
+  get(key: string): string | null;
+  set(key: string, value: string): void;
+}
+
+const STORAGE_KEY = "sudoku_state";
+const DIFFICULTY_KEY = "sudoku_lastDifficulty";
 
 function validCell(cell: number): boolean {
   return Number.isInteger(cell) && cell >= 0 && cell < CELLS;
@@ -104,4 +118,31 @@ export function startGame(difficulty: Difficulty, rng: Rng = Math.random): GameS
     board: solution.map((value, i) => (givens[i] ? value : 0)),
     startTime: undefined,
   };
+}
+
+export function saveState(state: GameState, storage: StoragePort): void {
+  storage.set(STORAGE_KEY, JSON.stringify(state));
+}
+
+export function loadState(storage: StoragePort): GameState | null {
+  try {
+    const raw = storage.get(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function discardState(storage: StoragePort): void {
+  storage.set(STORAGE_KEY, "");
+}
+
+export function saveLastDifficulty(difficulty: Difficulty | null, storage: StoragePort): void {
+  if (difficulty === null) return;
+  storage.set(DIFFICULTY_KEY, difficulty);
+}
+
+export function getLastDifficulty(storage: StoragePort): Difficulty | null {
+  return (storage.get(DIFFICULTY_KEY) as Difficulty | null) ?? null;
 }

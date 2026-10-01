@@ -5,17 +5,23 @@ import {
   computeHighlights,
   countSolutions,
   createInitialState,
+  discardState,
   erase,
   generatePuzzle,
+  getLastDifficulty,
   isValidGrid,
+  loadState,
   place,
   REMOVAL_BUDGET,
+  saveLastDifficulty,
+  saveState,
   select,
   startGame,
   startGameTimer,
   toggleNote,
   type Difficulty,
   type Rng,
+  type StoragePort,
 } from "./index";
 
 const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "expert"];
@@ -380,3 +386,68 @@ function withNotes(index: number, notes: number[]): number[][] {
     i === index ? [...notes] : [],
   );
 }
+
+function makeMemoryStorage(): StoragePort {
+  const store: Record<string, string> = {};
+  return {
+    get(key: string) {
+      return store[key] ?? null;
+    },
+    set(key: string, value: string) {
+      store[key] = value;
+    },
+  };
+}
+
+describe("save / restore round-trip with in-memory storage", () => {
+  it("saves and restores the full game state", () => {
+    const storage = makeMemoryStorage();
+    const game = startGame("hard", seededRng(7));
+    saveState(game, storage);
+    const restored = loadState(storage);
+    expect(restored).toEqual(game);
+  });
+
+  it("restores an in-progress game with elapsed time and notes", () => {
+    const storage = makeMemoryStorage();
+    let game = startGame("medium", seededRng(11));
+    game = select(game, 5);
+    game = place(game, 5, 3);
+    game = place(game, 12, 7);
+    game = toggleNote(game, 20, 4);
+    saveState(game, storage);
+    const restored = loadState(storage);
+    expect(restored).toEqual(game);
+  });
+
+  it("returns null when no state has been saved", () => {
+    const storage = makeMemoryStorage();
+    expect(loadState(storage)).toBeNull();
+  });
+
+  it("returns null when stored data is corrupted", () => {
+    const storage = makeMemoryStorage();
+    storage.set("sudoku_state", "invalid json {{{");
+    expect(loadState(storage)).toBeNull();
+  });
+
+  it("discards state from storage", () => {
+    const storage = makeMemoryStorage();
+    const game = startGame("easy", seededRng(1));
+    saveState(game, storage);
+    expect(loadState(storage)).not.toBeNull();
+    discardState(storage);
+    expect(loadState(storage)).toBeNull();
+  });
+
+  it("saves and retrieves last difficulty", () => {
+    const storage = makeMemoryStorage();
+    saveLastDifficulty("expert", storage);
+    expect(getLastDifficulty(storage)).toBe("expert");
+  });
+
+  it("returns null for last difficulty when not set", () => {
+    const storage = makeMemoryStorage();
+    expect(getLastDifficulty(storage)).toBeNull();
+  });
+});

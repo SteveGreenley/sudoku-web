@@ -36,21 +36,30 @@ export function EraseButton({ onErase }: EraseButtonProps) {
   );
 }
 
-interface ControlsProps {
+export interface ControlsProps {
   notesMode: boolean;
   onToggleNotesMode: () => void;
   onErase: () => void;
+  onNewGame: () => void;
 }
 
 export function Controls({
   notesMode,
   onToggleNotesMode,
   onErase,
+  onNewGame,
 }: ControlsProps) {
   return (
-    <div className="flex w-[min(90vw,432px)] justify-center gap-2">
+    <div className="flex w-[min(90vw,432px)] items-center justify-center gap-2">
       <NotesToggle notesMode={notesMode} onToggle={onToggleNotesMode} />
       <EraseButton onErase={onErase} />
+      <button
+        type="button"
+        onClick={onNewGame}
+        className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-600 shadow-sm transition-colors hover:bg-zinc-100"
+      >
+        New Game
+      </button>
     </div>
   );
 }

@@ -5,29 +5,49 @@ import { Board } from "@/components/Board";
 import { Controls } from "@/components/Controls";
 import { DifficultyPicker } from "@/components/DifficultyPicker";
 import { Header } from "@/components/Header";
+import { NewGameDialog } from "@/components/NewGameDialog";
 import { NumberPad } from "@/components/NumberPad";
 import { SolvedOverlay } from "@/components/SolvedOverlay";
 import {
   checkWin,
-  createInitialState,
+  discardState,
   erase,
+  getLastDifficulty,
+  loadState,
   place,
+  saveLastDifficulty,
+  saveState,
   select,
   startGame,
   toggleNote,
   type Difficulty,
   type GameState,
+  type StoragePort,
 } from "@/game";
 
-export default function Page() {
-  const [state, setState] = useState<GameState>(createInitialState);
-  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
-  const inputRef = useRef<HTMLDivElement>(null);
+const localStoragePort: StoragePort = {
+  get: (key: string) => localStorage.getItem(key),
+  set: (key: string, value: string) => localStorage.setItem(key, value),
+};
 
-  useEffect(() => {
-    const id = setTimeout(() => setState(startGame(difficulty)), 0);
-    return () => clearTimeout(id);
-  }, [difficulty]);
+function getInitial(): GameState {
+  const saved = loadState(localStoragePort);
+  if (saved && saved.status === "playing") {
+    return saved;
+  }
+  const last = getLastDifficulty(localStoragePort);
+  return startGame(last ?? "easy");
+}
+
+export default function Page() {
+  const [state, setState] = useState<GameState>(getInitial);
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => {
+    const saved = loadState(localStoragePort);
+    if (saved && saved.difficulty) return saved.difficulty;
+    return getLastDifficulty(localStoragePort) ?? "easy";
+  });
+  const inputRef = useRef<HTMLDivElement>(null);
+  const [showNewGame, setShowNewGame] = useState(false);
 
   const onSelectCell = useCallback(
     (cell: number) => setState((s) => select(s, cell)),
@@ -35,12 +55,23 @@ export default function Page() {
   );
 
   const onPlace = useCallback(
-    (cell: number, value: number) => setState((s) => place(s, cell, value)),
+    (cell: number, value: number) => {
+      setState((s) => {
+        const next = place(s, cell, value);
+        saveState(next, localStoragePort);
+        return next;
+      });
+    },
     [],
   );
 
   const onErase = useCallback(
-    () => setState((s) => (s.selected !== null ? erase(s, s.selected) : s)),
+    () => setState((s) => {
+      if (s.selected === null) return s;
+      const next = erase(s, s.selected);
+      saveState(next, localStoragePort);
+      return next;
+    }),
     [],
   );
 
@@ -83,18 +114,24 @@ export default function Page() {
       // 1-9 place numbers or notes
       const digit = parseInt(key, 10);
       if (digit >= 1 && digit <= 9 && state.selected !== null) {
-        if (state.notesMode) {
-          setState((s) => toggleNote(s, s.selected!, digit));
-        } else {
-          setState((s) => place(s, s.selected!, digit));
-        }
+        setState((s) => {
+          const next = state.notesMode
+            ? toggleNote(s, s.selected!, digit)
+            : place(s, s.selected!, digit);
+          saveState(next, localStoragePort);
+          return next;
+        });
         return;
       }
 
       // Backspace erases the selected cell
       if (key === "Backspace" && state.selected !== null) {
         e.preventDefault();
-        setState((s) => erase(s, s.selected!));
+        setState((s) => {
+          const next = erase(s, s.selected!);
+          saveState(next, localStoragePort);
+          return next;
+        });
         return;
       }
     },
@@ -104,7 +141,11 @@ export default function Page() {
   const padOnPlace = useCallback(
     (value: number) => {
       if (state.selected !== null) {
-        setState((s) => place(s, s.selected!, value));
+        setState((s) => {
+          const next = place(s, s.selected!, value);
+          saveState(next, localStoragePort);
+          return next;
+        });
       }
     },
     [state.selected],
@@ -113,7 +154,11 @@ export default function Page() {
   const padOnToggleNote = useCallback(
     (value: number) => {
       if (state.selected !== null) {
-        setState((s) => toggleNote(s, s.selected!, value));
+        setState((s) => {
+          const next = toggleNote(s, s.selected!, value);
+          saveState(next, localStoragePort);
+          return next;
+        });
       }
     },
     [state.selected],
@@ -128,15 +173,39 @@ export default function Page() {
         if (s.status !== "playing" || s.elapsedMs === 0 || s.startTime === undefined) return s;
         const elapsed = Date.now() - s.startTime;
         const next = { ...s, elapsedMs: elapsed };
-        return checkWin(next);
+        const won = checkWin(next);
+        if (won.status === "solved") {
+          saveState(won, localStoragePort);
+        }
+        return won;
       });
     }, 100);
     return () => clearInterval(interval);
   }, [state.status, state.elapsedMs, state.startTime]);
 
-  const handleNewGame = useCallback(
+  const handleNewGamePrompt = useCallback(() => {
+    setShowNewGame(true);
+  }, []);
+
+  const handleNewGameConfirm = useCallback(
     (d: Difficulty) => {
+      setShowNewGame(false);
+      discardState(localStoragePort);
+      const newGame = startGame(d);
       setDifficulty(d);
+      saveLastDifficulty(d, localStoragePort);
+      setState(newGame);
+    },
+    [],
+  );
+
+  const handleSolvedNewGame = useCallback(
+    (d: Difficulty) => {
+      discardState(localStoragePort);
+      const newGame = startGame(d);
+      setDifficulty(d);
+      saveLastDifficulty(d, localStoragePort);
+      setState(newGame);
     },
     [],
   );
@@ -154,6 +223,7 @@ export default function Page() {
         notesMode={state.notesMode}
         onToggleNotesMode={() => setState((s) => ({ ...s, notesMode: !s.notesMode }))}
         onErase={onErase}
+        onNewGame={handleNewGamePrompt}
       />
       <Board state={state} onSelectCell={onSelectCell} onPlace={onPlace} />
       <NumberPad
@@ -166,7 +236,12 @@ export default function Page() {
         <SolvedOverlay
           elapsedMs={state.elapsedMs}
           difficulty={state.difficulty}
-          onNewGame={handleNewGame}
+          onNewGame={handleSolvedNewGame}
+        />
+      )}
+      {showNewGame && (
+        <NewGameDialog
+          onConfirm={handleNewGameConfirm}
         />
       )}
     </main>

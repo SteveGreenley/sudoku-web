@@ -4,12 +4,16 @@
 
 **Blocked by:** 03 (Selection, placement, and mistake feedback)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Every change to the current game is saved through the injected storage port (localStorage in the app)
-- [ ] Reloading the page resumes the in-progress game with board, notes, difficulty, and elapsed time intact
-- [ ] With no saved game, the page starts a fresh game
-- [ ] New Game on an in-progress game asks for confirmation before discarding it
-- [ ] New Game then offers the difficulty choice and starts a fresh puzzle
-- [ ] The last chosen difficulty is remembered as the default
-- [ ] The save/restore round-trip is tested at the module seam using an in-memory fake storage
+- [x] Every change to the current game is saved through the injected storage port (localStorage in the app)
+- [x] Reloading the page resumes the in-progress game with board, notes, difficulty, and elapsed time intact
+- [x] With no saved game, the page starts a fresh game
+- [x] New Game on an in-progress game asks for confirmation before discarding it
+- [x] New Game then offers the difficulty choice and starts a fresh puzzle
+- [x] The last chosen difficulty is remembered as the default
+- [x] The save/restore round-trip is tested at the module seam using an in-memory fake storage
+
+## Comments
+
+- 2026-10-01: Implemented. Added `StoragePort` interface (`get`/`set`) to game module. Pure `saveState(state, storage)` serializes GameState to storage; `loadState(storage)` deserializes (returns null when no data or corrupted); `discardState(storage)` clears. `saveLastDifficulty`/`getLastDifficulty` persist the last chosen difficulty. App layer uses `localStoragePort` (wraps `localStorage.getItem`/`setItem`). Every game change (place, toggleNote, erase, keyboard input, pad input) saves to localStorage. On mount: tries to load saved playing game, or starts fresh with last difficulty (defaults to "easy"). New Game button opens `NewGameDialog`: confirmation step, then difficulty picker, then starts fresh game (discards old, saves last difficulty). `SolvedOverlay` also triggers New Game flow (discards, starts fresh). 42 tests pass (7 new persistence tests). Lint clean.
