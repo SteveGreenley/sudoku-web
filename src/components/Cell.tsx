@@ -43,12 +43,12 @@ export function Cell({
 
   const isMistake =
     value !== 0 && !isGiven && value !== solutionValue;
-  const fontWeight = isGiven
-    ? "font-semibold"
-    : isSameNumber
-      ? "font-bold"
+  const fontWeight = isSameNumber
+    ? "font-bold"
+    : isGiven
+      ? "font-semibold"
       : "font-normal";
-  const textColor = isGiven
+  const textColor = isGiven && !isMistake
     ? "text-zinc-900"
     : isMistake
       ? "text-red-500"

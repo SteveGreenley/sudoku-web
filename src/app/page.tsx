@@ -10,6 +10,7 @@ import { NumberPad } from "@/components/NumberPad";
 import { SolvedOverlay } from "@/components/SolvedOverlay";
 import {
   checkWin,
+  createInitialState,
   discardState,
   erase,
   getLastDifficulty,
@@ -26,28 +27,64 @@ import {
 } from "@/game";
 
 const localStoragePort: StoragePort = {
-  get: (key: string) => localStorage.getItem(key),
-  set: (key: string, value: string) => localStorage.setItem(key, value),
+  get: (key: string) => typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null,
+  set: (key: string, value: string) => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(key, value);
+    }
+  },
 };
 
-function getInitial(): GameState {
-  const saved = loadState(localStoragePort);
-  if (saved && saved.status === "playing") {
-    return saved;
-  }
-  const last = getLastDifficulty(localStoragePort);
-  return startGame(last ?? "easy");
-}
-
 export default function Page() {
-  const [state, setState] = useState<GameState>(getInitial);
-  const [difficulty, setDifficulty] = useState<Difficulty>(() => {
-    const saved = loadState(localStoragePort);
-    if (saved && saved.difficulty) return saved.difficulty;
-    return getLastDifficulty(localStoragePort) ?? "easy";
-  });
+  const [state, setState] = useState<GameState>(createInitialState);
+  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const inputRef = useRef<HTMLDivElement>(null);
   const [showNewGame, setShowNewGame] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => { setIsClient(true); }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Track if state was loaded from persistence (to prevent new game startup)
+  const loadedFromPersistence = useRef(false);
+  /* eslint-disable react-hooks/set-state-in-effect */
+  // On mount: try loading a saved game, or start a new one
+  useEffect(() => {
+    if (!isClient) return;
+    const saved = loadState(localStoragePort);
+    if (saved && saved.status === "playing") {
+      loadedFromPersistence.current = true;
+      setState(saved);
+      if (saved.difficulty) {
+        setDifficulty(saved.difficulty);
+      }
+      return;
+    }
+    loadedFromPersistence.current = false;
+    const last = getLastDifficulty(localStoragePort);
+    const initDifficulty = last ?? "easy";
+    setDifficulty(initDifficulty);
+    const id = setTimeout(() => setState(startGame(initDifficulty)), 0);
+    return () => clearTimeout(id);
+  }, [isClient]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // When difficulty prop changes (via UI), start a new game with new difficulty
+  const prevDifficultyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isClient || prevDifficultyRef.current === null) {
+      prevDifficultyRef.current = difficulty;
+      return;
+    }
+    // Only start a new game if difficulty actually changed
+    if (prevDifficultyRef.current === difficulty) return;
+    prevDifficultyRef.current = difficulty;
+    const id = setTimeout(() => setState(startGame(difficulty)), 0);
+    return () => clearTimeout(id);
+  }, [isClient, difficulty]);
+
+
 
   const onSelectCell = useCallback(
     (cell: number) => setState((s) => select(s, cell)),
@@ -58,21 +95,21 @@ export default function Page() {
     (cell: number, value: number) => {
       setState((s) => {
         const next = place(s, cell, value);
-        saveState(next, localStoragePort);
+        if (isClient) saveState(next, localStoragePort);
         return next;
       });
     },
-    [],
+    [isClient],
   );
 
   const onErase = useCallback(
     () => setState((s) => {
       if (s.selected === null) return s;
       const next = erase(s, s.selected);
-      saveState(next, localStoragePort);
+      if (isClient) saveState(next, localStoragePort);
       return next;
     }),
-    [],
+    [isClient],
   );
 
   const handleKeyDown = useCallback(
@@ -118,7 +155,7 @@ export default function Page() {
           const next = state.notesMode
             ? toggleNote(s, s.selected!, digit)
             : place(s, s.selected!, digit);
-          saveState(next, localStoragePort);
+          if (isClient) saveState(next, localStoragePort);
           return next;
         });
         return;
@@ -129,13 +166,13 @@ export default function Page() {
         e.preventDefault();
         setState((s) => {
           const next = erase(s, s.selected!);
-          saveState(next, localStoragePort);
+          if (isClient) saveState(next, localStoragePort);
           return next;
         });
         return;
       }
     },
-    [state.selected, state.notesMode],
+    [state.selected, state.notesMode, isClient],
   );
 
   const padOnPlace = useCallback(
@@ -143,12 +180,12 @@ export default function Page() {
       if (state.selected !== null) {
         setState((s) => {
           const next = place(s, s.selected!, value);
-          saveState(next, localStoragePort);
+          if (isClient) saveState(next, localStoragePort);
           return next;
         });
       }
     },
-    [state.selected],
+    [state.selected, isClient],
   );
 
   const padOnToggleNote = useCallback(
@@ -156,32 +193,32 @@ export default function Page() {
       if (state.selected !== null) {
         setState((s) => {
           const next = toggleNote(s, s.selected!, value);
-          saveState(next, localStoragePort);
+          if (isClient) saveState(next, localStoragePort);
           return next;
         });
       }
     },
-    [state.selected],
+    [state.selected, isClient],
   );
 
   useEffect(() => {
-    if (state.status !== "playing" || state.elapsedMs === 0 || state.startTime === undefined) {
+    if (state.status !== "playing" || state.startTime === undefined) {
       return;
     }
     const interval = setInterval(() => {
       setState((s) => {
-        if (s.status !== "playing" || s.elapsedMs === 0 || s.startTime === undefined) return s;
+        if (s.status !== "playing" || s.startTime === undefined) return s;
         const elapsed = Date.now() - s.startTime;
         const next = { ...s, elapsedMs: elapsed };
         const won = checkWin(next);
-        if (won.status === "solved") {
+        if (isClient && won.status === "solved") {
           saveState(won, localStoragePort);
         }
         return won;
       });
     }, 100);
     return () => clearInterval(interval);
-  }, [state.status, state.elapsedMs, state.startTime]);
+  }, [state.status, state.startTime, isClient]);
 
   const handleNewGamePrompt = useCallback(() => {
     setShowNewGame(true);
@@ -190,24 +227,28 @@ export default function Page() {
   const handleNewGameConfirm = useCallback(
     (d: Difficulty) => {
       setShowNewGame(false);
-      discardState(localStoragePort);
+      if (isClient) {
+        discardState(localStoragePort);
+      }
       const newGame = startGame(d);
       setDifficulty(d);
-      saveLastDifficulty(d, localStoragePort);
+      if (isClient) saveLastDifficulty(d, localStoragePort);
       setState(newGame);
     },
-    [],
+    [isClient],
   );
 
   const handleSolvedNewGame = useCallback(
     (d: Difficulty) => {
-      discardState(localStoragePort);
+      if (isClient) {
+        discardState(localStoragePort);
+      }
       const newGame = startGame(d);
       setDifficulty(d);
-      saveLastDifficulty(d, localStoragePort);
+      if (isClient) saveLastDifficulty(d, localStoragePort);
       setState(newGame);
     },
-    [],
+    [isClient],
   );
 
   return (
@@ -218,7 +259,7 @@ export default function Page() {
       tabIndex={-1}
     >
       <Header state={state} />
-      <DifficultyPicker value={difficulty} onSelect={setDifficulty} />
+      <DifficultyPicker value={isClient ? difficulty : state.difficulty ?? "easy"} onSelect={setDifficulty} />
       <Controls
         notesMode={state.notesMode}
         onToggleNotesMode={() => setState((s) => ({ ...s, notesMode: !s.notesMode }))}
@@ -241,6 +282,7 @@ export default function Page() {
       )}
       {showNewGame && (
         <NewGameDialog
+          onClose={() => setShowNewGame(false)}
           onConfirm={handleNewGameConfirm}
         />
       )}

@@ -4,27 +4,25 @@ import type { Difficulty } from "@/game";
 const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "expert"];
 
 interface NewGameDialogProps {
+  onClose: () => void;
   onConfirm: (selected: Difficulty) => void;
 }
 
-export function NewGameDialog({ onConfirm }: NewGameDialogProps) {
+export function NewGameDialog({ onClose, onConfirm }: NewGameDialogProps) {
   const [step, setStep] = useState<"confirm" | "difficulty">("confirm");
   const [chosen, setChosen] = useState<Difficulty | null>(null);
 
-  const handleCancel = useCallback(() => {
-    setStep("confirm");
-  }, []);
-
-  const handleConfirm = useCallback(() => {
+  const handleConfirmStep = useCallback(() => {
     setStep("difficulty");
   }, []);
 
   const handleSelectDifficulty = useCallback(
     (d: Difficulty) => {
       setChosen(d);
+      onClose();
       onConfirm(d);
     },
-    [onConfirm],
+    [onClose, onConfirm],
   );
 
   return (
@@ -41,14 +39,14 @@ export function NewGameDialog({ onConfirm }: NewGameDialogProps) {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={handleCancel}
+                onClick={onClose}
                 className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-100"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={handleConfirm}
+                onClick={handleConfirmStep}
                 className="rounded-md border border-zinc-300 bg-zinc-800 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-zinc-700"
               >
                 New Game
