@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CELLS,
+  computeHighlights,
   countSolutions,
   createInitialState,
   erase,
@@ -154,6 +155,58 @@ describe("erase", () => {
     state.givens[12] = true;
     state.board[12] = 4;
     expect(erase(state, 12)).toBe(state);
+  });
+});
+
+describe("computeHighlights", () => {
+  it("returns null when no cell is selected", () => {
+    expect(computeHighlights(createInitialState())).toBeNull();
+  });
+
+  it("highlights the row, column, and box of the selected cell", () => {
+    const state = createInitialState();
+    const result = computeHighlights(select(state, 40));
+    const { highlighted } = result!;
+    const row = Math.floor(40 / 9);
+    const col = 40 % 9;
+    for (let i = 0; i < CELLS; i++) {
+      if (i === 40) {
+        expect(highlighted.has(i)).toBe(false);
+        continue;
+      }
+      const r = Math.floor(i / 9);
+      const c = i % 9;
+      const inSameRow = r === row;
+      const inSameCol = c === col;
+      const inSameBox =
+        Math.floor(r / 3) === Math.floor(row / 3) &&
+        Math.floor(c / 3) === Math.floor(col / 3);
+      expect(highlighted.has(i)).toBe(inSameRow || inSameCol || inSameBox);
+    }
+  });
+
+  it("bolds other cells holding the same number as selected", () => {
+    const state = startGame("medium", seededRng(1));
+    const selected = 5;
+    const selectedValue = state.board[selected];
+    const result = computeHighlights(select(state, selected));
+    const { bold } = result!;
+    for (let i = 0; i < CELLS; i++) {
+      if (i === selected) {
+        expect(bold.has(i)).toBe(false);
+        continue;
+      }
+      const shouldBold = state.board[i] === selectedValue && selectedValue !== 0;
+      expect(bold.has(i)).toBe(shouldBold);
+    }
+  });
+
+  it("produces no bolding when selected cell has no number (notes-only)", () => {
+    const state = startGame("medium", seededRng(1));
+    const emptyCell = state.board.findIndex((v) => v === 0);
+    expect(state.board[emptyCell]).toBe(0);
+    const result = computeHighlights(select(state, emptyCell));
+    expect(result!.bold.size).toBe(0);
   });
 });
 

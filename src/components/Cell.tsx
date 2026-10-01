@@ -7,6 +7,8 @@ interface CellProps {
   isGiven: boolean;
   notes: number[];
   isSelected: boolean;
+  isHighlighted: boolean;
+  isSameNumber: boolean;
   onSelect: (cell: number) => void;
   onPlace?: (cell: number, value: number) => void;
 }
@@ -18,6 +20,8 @@ export function Cell({
   isGiven,
   notes,
   isSelected,
+  isHighlighted,
+  isSameNumber,
   onSelect,
   onPlace,
 }: CellProps) {
@@ -26,20 +30,30 @@ export function Cell({
   const right =
     col === 2 || col === 5 || col === 8
       ? "border-r-2 border-r-zinc-800"
-      : "border-r border-r-zinc-300";
+      : "border-r border-zinc-300";
   const bottom =
     row === 2 || row === 5 || row === 8
       ? "border-b-2 border-b-zinc-800"
       : "border-b border-b-zinc-300";
-  const fill = isSelected ? "bg-blue-300" : "bg-white hover:bg-zinc-100";
+  const fill = isSelected
+    ? "bg-blue-300"
+    : isHighlighted
+      ? "bg-blue-100"
+      : "bg-white hover:bg-zinc-100";
 
   const isMistake =
     value !== 0 && !isGiven && value !== solutionValue;
-  const text = isGiven
-    ? "font-semibold text-zinc-900"
+  const fontWeight = isGiven
+    ? "font-semibold"
+    : isSameNumber
+      ? "font-bold"
+      : "font-normal";
+  const textColor = isGiven
+    ? "text-zinc-900"
     : isMistake
-      ? "font-medium text-red-500"
+      ? "text-red-500"
       : "text-blue-600";
+  const text = `${fontWeight} ${textColor}`;
 
   const handleClick = () => {
     onSelect(index);
