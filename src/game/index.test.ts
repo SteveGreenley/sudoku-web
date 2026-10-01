@@ -201,10 +201,6 @@ describe("computeHighlights", () => {
     const result = computeHighlights(select(state, selected));
     const { bold } = result!;
     for (let i = 0; i < CELLS; i++) {
-      if (i === selected) {
-        expect(bold.has(i)).toBe(false);
-        continue;
-      }
       const shouldBold = state.board[i] === selectedValue && selectedValue !== 0;
       expect(bold.has(i)).toBe(shouldBold);
     }
