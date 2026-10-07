@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   CELLS,
   addSelectedCells,
+  applyNoteToSelection,
   clearSelection,
   createInitialState,
   effectiveNotesMode,
+  eraseSelection,
   loadState,
+  movePrimary,
   place,
   saveState,
   select,
@@ -232,6 +235,214 @@ describe("toggleSelectedCell", () => {
   });
 });
 
+describe("applyNoteToSelection", () => {
+  it("adds the note to every selected cell at once", () => {
+    const base = withSelection(emptyBoard(), [10, 20, 30]);
+    const next = applyNoteToSelection(base, 5);
+    expect(next.notes[10]).toEqual([5]);
+    expect(next.notes[20]).toEqual([5]);
+    expect(next.notes[30]).toEqual([5]);
+  });
+
+  it("removes it from a cell that already has it while adding it to the others, in one call", () => {
+    const base = withSelection(emptyBoard(), [10, 20]);
+    base.notes[10] = [5];
+    const next = applyNoteToSelection(base, 5);
+    expect(next.notes[10]).toEqual([]);
+    expect(next.notes[20]).toEqual([5]);
+  });
+
+  it("keeps notes sorted", () => {
+    const base = withSelection(emptyBoard(), [10]);
+    base.notes[10] = [3, 7];
+    const next = applyNoteToSelection(base, 5);
+    expect(next.notes[10]).toEqual([3, 5, 7]);
+  });
+
+  it("leaves cells outside the selection untouched", () => {
+    const base = withSelection(emptyBoard(), [10, 20]);
+    const next = applyNoteToSelection(base, 5);
+    expect(next.notes[11]).toEqual([]);
+    expect(next.notes[40]).toEqual([]);
+  });
+
+  it("does not change the selection membership, the primary, or the mode", () => {
+    const base = withSelection(emptyBoard(), [10, 20, 30]);
+    const next = applyNoteToSelection(base, 5);
+    expect(next.selectedCells).toEqual([10, 20, 30]);
+    expect(next.selected).toBe(30);
+    expect(next.cellSelectionMode).toBe(true);
+  });
+
+  it("skips given and completed cells defensively", () => {
+    const state = withNumber(withGiven(emptyBoard(), 10), 20, 7);
+    const base = withSelection(state, [10, 20, 30]);
+    const next = applyNoteToSelection(base, 5);
+    expect(next.givens[10]).toBe(true);
+    expect(next.board[20]).toBe(7);
+    expect(next.notes[30]).toEqual([5]);
+  });
+
+  it("is a no-op when the selection is empty", () => {
+    const state = emptyBoard();
+    expect(applyNoteToSelection(state, 5)).toBe(state);
+  });
+
+  it("is a no-op for an invalid value", () => {
+    const base = withSelection(emptyBoard(), [10, 20]);
+    expect(applyNoteToSelection(base, 0)).toBe(base);
+    expect(applyNoteToSelection(base, 10)).toBe(base);
+    expect(applyNoteToSelection(base, 2.5)).toBe(base);
+  });
+
+  it("leaves the stored notesMode untouched", () => {
+    const base = withSelection(emptyBoard(), [10, 20]);
+    base.notesMode = true;
+    const next = applyNoteToSelection(base, 5);
+    expect(next.notesMode).toBe(true);
+  });
+
+  it("is a no-op when the game is not playing", () => {
+    const base = withSelection(emptyBoard(), [10, 20]);
+    const solved = { ...base, status: "solved" as const };
+    expect(applyNoteToSelection(solved, 5)).toBe(solved);
+  });
+});
+
+describe("eraseSelection", () => {
+  it("clears the notes on every selected cell at once", () => {
+    const base = withSelection(emptyBoard(), [10, 20, 30]);
+    base.notes[10] = [2, 5];
+    base.notes[20] = [4];
+    base.notes[30] = [1, 3, 7];
+    const next = eraseSelection(base);
+    expect(next.notes[10]).toEqual([]);
+    expect(next.notes[20]).toEqual([]);
+    expect(next.notes[30]).toEqual([]);
+  });
+
+  it("leaves cells outside the selection untouched", () => {
+    const base = withSelection(emptyBoard(), [10, 20]);
+    base.notes[11] = [2, 5];
+    const next = eraseSelection(base);
+    expect(next.notes[11]).toEqual([2, 5]);
+  });
+
+  it("does not change the selection membership, the primary, or the mode", () => {
+    const base = withSelection(emptyBoard(), [10, 20, 30]);
+    base.notes[10] = [2];
+    const next = eraseSelection(base);
+    expect(next.selectedCells).toEqual([10, 20, 30]);
+    expect(next.selected).toBe(30);
+    expect(next.cellSelectionMode).toBe(true);
+  });
+
+  it("clears a number from a member that holds one, mirroring erase", () => {
+    const state = withNumber(emptyBoard(), 20, 7);
+    const base = withSelection(state, [10, 20, 30]);
+    base.notes[10] = [2];
+    const next = eraseSelection(base);
+    expect(next.board[20]).toBe(0);
+    expect(next.notes[10]).toEqual([]);
+  });
+
+  it("skips given cells defensively", () => {
+    const state = withGiven(emptyBoard(), 10);
+    const base = withSelection(state, [10, 20]);
+    const next = eraseSelection(base);
+    expect(next.board[10]).toBe(3);
+    expect(next.givens[10]).toBe(true);
+  });
+
+  it("is a no-op when the selection is empty", () => {
+    const state = emptyBoard();
+    expect(eraseSelection(state)).toBe(state);
+  });
+
+  it("is a no-op when no selected cell has a number or notes", () => {
+    const base = withSelection(emptyBoard(), [10, 20, 30]);
+    expect(eraseSelection(base)).toBe(base);
+  });
+
+  it("is a no-op when the game is not playing", () => {
+    const base = withSelection(emptyBoard(), [10, 20]);
+    base.notes[10] = [2];
+    const solved = { ...base, status: "solved" as const };
+    expect(eraseSelection(solved)).toBe(solved);
+  });
+});
+
+describe("movePrimary", () => {
+  it("moves the primary to an incompleted cell and adds it to the set as the last element", () => {
+    const base = withSelection(emptyBoard(), [10, 20]);
+    const next = movePrimary(base, 30);
+    expect(next.selected).toBe(30);
+    expect(next.selectedCells).toEqual([10, 20, 30]);
+    expect(next.cellSelectionMode).toBe(true);
+  });
+
+  it("does not duplicate a cell that is already a member", () => {
+    const base = withSelection(emptyBoard(), [10, 20]);
+    const next = movePrimary(base, 10);
+    expect(next.selected).toBe(10);
+    expect(next.selectedCells).toEqual([10, 20]);
+    expect(next.cellSelectionMode).toBe(true);
+  });
+
+  it("takes a given cell as the primary without adding it to the set", () => {
+    const state = withGiven(emptyBoard(), 5);
+    const base = withSelection(state, [10, 20]);
+    const next = movePrimary(base, 5);
+    expect(next.selected).toBe(5);
+    expect(next.selectedCells).toEqual([10, 20]);
+    expect(next.cellSelectionMode).toBe(true);
+  });
+
+  it("takes a completed cell as the primary without adding it to the set", () => {
+    const state = withNumber(emptyBoard(), 5, 7);
+    const base = withSelection(state, [10, 20]);
+    const next = movePrimary(base, 5);
+    expect(next.selected).toBe(5);
+    expect(next.selectedCells).toEqual([10, 20]);
+    expect(next.cellSelectionMode).toBe(true);
+  });
+
+  it("never shrinks the set or exits the mode", () => {
+    const base = withSelection(emptyBoard(), [10, 20, 30]);
+    const next = movePrimary(base, 10);
+    expect(next.selectedCells.length).toBe(3);
+    expect(next.cellSelectionMode).toBe(true);
+  });
+
+  it("turns the mode on once the move grows the set to two cells", () => {
+    const base = withSelection(emptyBoard(), [10]);
+    const next = movePrimary(base, 20);
+    expect(next.selected).toBe(20);
+    expect(next.selectedCells).toEqual([10, 20]);
+    expect(next.cellSelectionMode).toBe(true);
+  });
+
+  it("keeps the mode off for a single-member set that stays single", () => {
+    const base = withSelection(emptyBoard(), [10]);
+    const next = movePrimary(base, 10);
+    expect(next.selected).toBe(10);
+    expect(next.selectedCells).toEqual([10]);
+    expect(next.cellSelectionMode).toBe(false);
+  });
+
+  it("is a no-op for an out-of-range cell", () => {
+    const base = withSelection(emptyBoard(), [10, 20]);
+    expect(movePrimary(base, CELLS)).toBe(base);
+    expect(movePrimary(base, -1)).toBe(base);
+  });
+
+  it("is a no-op when the game is not playing", () => {
+    const base = withSelection(emptyBoard(), [10, 20]);
+    const solved = { ...base, status: "solved" as const };
+    expect(movePrimary(solved, 30)).toBe(solved);
+  });
+});
+
 describe("clearSelection", () => {
   it("empties the set, clears the primary, and turns the mode off", () => {
     const base = withSelection(emptyBoard(), [10, 20, 30]);
@@ -348,6 +559,11 @@ describe("invariants across selection actions", () => {
     state = clearSelection(state);
     expect(state.selected).toBeNull();
     expect(state.selectedCells).toEqual([]);
+  });
+
+  it("keeps `selected` equal to the last member after movePrimary onto an incompleted cell", () => {
+    const state = movePrimary(withSelection(emptyBoard(), [10, 20]), 30);
+    expect(state.selected).toBe(state.selectedCells[state.selectedCells.length - 1]);
   });
 
   it("keeps only incompleted cells in the set for the batch actions", () => {

@@ -10,15 +10,18 @@ import { NumberPad } from "@/components/NumberPad";
 import { SolvedOverlay } from "@/components/SolvedOverlay";
 import {
   addSelectedCells,
+  applyNoteToSelection,
   checkWin,
   clearSelection,
   createInitialState,
   discardState,
   effectiveNotesMode,
   erase,
+  eraseSelection,
   getDisabledNumbers,
   getLastDifficulty,
   loadState,
+  movePrimary,
   place,
   saveLastDifficulty,
   saveState,
@@ -131,8 +134,8 @@ export default function Page() {
 
   const onErase = useCallback(
     () => setState((s) => {
-      if (s.selected === null) return s;
-      const next = erase(s, s.selected);
+      if (s.selected === null && !s.cellSelectionMode) return s;
+      const next = s.cellSelectionMode ? eraseSelection(s) : erase(s, s.selected!);
       if (isClient) saveState(next, localStoragePort);
       return next;
     }),
@@ -154,56 +157,81 @@ export default function Page() {
         return;
       }
 
-      // Arrow keys move selection
+      // Arrow keys move the selected cell; in cell selection mode they move the
+      // primary without collapsing the group (movePrimary), and the moved group
+      // is saved so it survives a reload.
       if (state.selected !== null) {
         if (key === "ArrowLeft") {
           e.preventDefault();
           const col = state.selected % 9;
           const newCol = Math.max(0, col - 1);
-          setState((s) => select(s, s.selected! + (newCol - col)));
+          setState((s) => {
+            const cell = s.selected! + (newCol - col);
+            const next = s.cellSelectionMode ? movePrimary(s, cell) : select(s, cell);
+            if (s.cellSelectionMode && isClient) saveState(next, localStoragePort);
+            return next;
+          });
           return;
         }
         if (key === "ArrowRight") {
           e.preventDefault();
           const col = state.selected % 9;
           const newCol = Math.min(8, col + 1);
-          setState((s) => select(s, s.selected! + (newCol - col)));
+          setState((s) => {
+            const cell = s.selected! + (newCol - col);
+            const next = s.cellSelectionMode ? movePrimary(s, cell) : select(s, cell);
+            if (s.cellSelectionMode && isClient) saveState(next, localStoragePort);
+            return next;
+          });
           return;
         }
         if (key === "ArrowUp") {
           e.preventDefault();
           const row = Math.floor(state.selected / 9);
           const newRow = Math.max(0, row - 1);
-          setState((s) => select(s, s.selected! + (newRow - row) * 9));
+          setState((s) => {
+            const cell = s.selected! + (newRow - row) * 9;
+            const next = s.cellSelectionMode ? movePrimary(s, cell) : select(s, cell);
+            if (s.cellSelectionMode && isClient) saveState(next, localStoragePort);
+            return next;
+          });
           return;
         }
         if (key === "ArrowDown") {
           e.preventDefault();
           const row = Math.floor(state.selected / 9);
           const newRow = Math.min(8, row + 1);
-          setState((s) => select(s, s.selected! + (newRow - row) * 9));
+          setState((s) => {
+            const cell = s.selected! + (newRow - row) * 9;
+            const next = s.cellSelectionMode ? movePrimary(s, cell) : select(s, cell);
+            if (s.cellSelectionMode && isClient) saveState(next, localStoragePort);
+            return next;
+          });
           return;
         }
       }
 
-      // 1-9 place numbers or notes
+      // 1-9 place numbers or notes; in cell selection mode the note toggles
+      // across the whole selection
       const digit = parseInt(key, 10);
       if (digit >= 1 && digit <= 9 && state.selected !== null) {
         setState((s) => {
-          const next = effectiveNotesMode(s)
-            ? toggleNote(s, s.selected!, digit)
-            : place(s, s.selected!, digit);
+          const next = s.cellSelectionMode
+            ? applyNoteToSelection(s, digit)
+            : effectiveNotesMode(s)
+              ? toggleNote(s, s.selected!, digit)
+              : place(s, s.selected!, digit);
           if (isClient) saveState(next, localStoragePort);
           return next;
         });
         return;
       }
 
-      // Backspace erases the selected cell
+      // Backspace erases the selected cell, or the whole selection in the mode
       if (key === "Backspace" && state.selected !== null) {
         e.preventDefault();
         setState((s) => {
-          const next = erase(s, s.selected!);
+          const next = s.cellSelectionMode ? eraseSelection(s) : erase(s, s.selected!);
           if (isClient) saveState(next, localStoragePort);
           return next;
         });
@@ -230,7 +258,11 @@ export default function Page() {
     (value: number) => {
       if (state.selected !== null) {
         setState((s) => {
-          const next = toggleNote(s, s.selected!, value);
+          // In cell selection mode the note toggles across every selected cell;
+          // placement stays single-cell (padOnPlace) either way.
+          const next = s.cellSelectionMode
+            ? applyNoteToSelection(s, value)
+            : toggleNote(s, s.selected!, value);
           if (isClient) saveState(next, localStoragePort);
           return next;
         });
