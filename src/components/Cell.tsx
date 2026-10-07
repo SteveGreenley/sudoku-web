@@ -61,12 +61,9 @@ export function Cell({
 
   const isMistake =
     value !== 0 && !isGiven && value !== solutionValue;
+  const baseTextColor = isGiven ? "text-zinc-900" : "text-blue-600";
   const fontWeight = sameNumber.text ?? (isGiven ? "font-semibold" : "font-normal");
-  const textColor = isGiven && !isMistake
-    ? "text-zinc-900"
-    : isMistake
-      ? "text-red-500"
-      : "text-blue-600";
+  const textColor = isMistake ? "text-red-500" : sameNumber.textColor ?? baseTextColor;
   const text = `${fontWeight} ${textColor}`;
 
   const noteGrid =
