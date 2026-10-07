@@ -55,7 +55,8 @@ A drag gesture that selects multiple incompleted cells for batch note editing, l
 - **Highlighting**: in cell selection mode the single-cell row/column/box fill and same-number / bold-notes highlighting are suppressed. Each selected cell is marked with a dashed **inner inset** outline (an accent color, drawn inset so it does not collide with the shared grid-line borders) over a neutral background. Normal-mode single selection keeps the existing solid fill + highlights unchanged.
 - **Input parity**: the number pad, the keyboard (1–9, Backspace), and the Erase button all route through the same multi-selection actions while in the mode; arrow keys move the primary cell. Normal-mode inputs are unchanged.
 - **Persistence**: `selectedCells` and `cellSelectionMode` are JSON-safe and auto-save/resume alongside `selected`, so an in-progress batch survives a reload.
-- **Vocabulary**: uses the glossary terms (board, cell, box, given, note) plus the new *incompleted* and *cell selection* terms.
+- **Vocabulary**: uses the glossary terms (board, cell, box, given, note) plus the new *incompleted*, *cell selection*, and *primary* terms.
+- **Accepted invariant exceptions**: the *primary* (`selected`) may point at a cell that is not a member of `selectedCells` — after placing on the primary (it completes and drops out) or after an arrow-key move onto a new incompleted, given, or completed cell; the batch (`selectedCells`) always stays exactly as the user built it. A fresh single tap is a 1-cell selection with `cellSelectionMode` off, while a set trimmed to one cell keeps the flag on (notes stay on, the one cell stays marked); the flag falls only when the set empties. The keyboard matches the number pad's disabled-number behaviour (a number complete on the board does nothing).
 
 ## Testing Decisions
 

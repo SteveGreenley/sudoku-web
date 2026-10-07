@@ -32,3 +32,17 @@ _Avoid_: Conflict, violation (constraint checking is not used for feedback)
 **Note**:
 A free pencil annotation of a possible value on an empty cell; never validated against the solution.
 _Avoid_: Pencil mark, candidate
+
+### Selection
+
+**Incompleted**:
+A cell with no placed number, including notes-only cells; givens and cells holding a number are completed.
+_Avoid_: Empty, blank
+
+**Cell selection**:
+A mode entered by dragging across incompleted cells, in which a set of incompleted cells is selected for batch note editing; distinct from single-cell selection.
+_Avoid_: Multi-select, range
+
+**Primary**:
+The last-touched cell in a selection — the cell `selected` points to.
+_Avoid_: Active, current
