@@ -1,4 +1,5 @@
 import { SIZE } from "@/game";
+import { sameNumberStyle } from "./sameNumberStyle";
 
 interface CellProps {
   index: number;
@@ -39,13 +40,20 @@ export function Cell({
     row === 2 || row === 5 || row === 8
       ? "border-b-2 border-b-zinc-800"
       : "border-b border-b-zinc-300";
-  const fill = inSelectionMode
+  const sameNumber = sameNumberStyle(
+    value,
+    isSelected,
+    isSameNumber,
+    isSameNoteNumber,
+  );
+  const baseFill = inSelectionMode
     ? "bg-white"
     : isSelected
       ? "bg-blue-300"
       : isHighlighted
         ? "bg-blue-100"
         : "bg-white hover:bg-zinc-100";
+  const fill = sameNumber.background ?? baseFill;
   const selectionMarker =
     inSelectionMode && isInSelection
       ? "outline-2 outline-dashed outline-blue-500 -outline-offset-2"
@@ -53,11 +61,7 @@ export function Cell({
 
   const isMistake =
     value !== 0 && !isGiven && value !== solutionValue;
-  const fontWeight = isSameNumber
-    ? "font-black"
-    : isGiven
-      ? "font-semibold"
-      : "font-normal";
+  const fontWeight = sameNumber.text ?? (isGiven ? "font-semibold" : "font-normal");
   const textColor = isGiven && !isMistake
     ? "text-zinc-900"
     : isMistake
@@ -83,7 +87,7 @@ export function Cell({
       ) : noteItems.length > 0 ? (
         <span className={noteGrid}>
           {noteItems.map((n) => (
-            <span key={n} className={isSameNoteNumber && n === selectedValue ? "font-black" : ""}>{n}</span>
+            <span key={n} className={sameNumber.noteEmphasis && n === selectedValue ? sameNumber.noteEmphasis : ""}>{n}</span>
           ))}
         </span>
       ) : null}
