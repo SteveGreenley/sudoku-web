@@ -214,16 +214,19 @@ export function addSelectedCells(state: GameState, cells: number[]): GameState {
 }
 
 // Toggles a single cell in the set: removes it if present, otherwise adds it if
-// it is incompleted. Givens and completed cells that are not already selected are
-// ignored. The primary `selected` tracks the last member of the set (or null when
-// it empties) and the mode flag follows the set-size transition (on from two
-// cells, off at zero).
+// it is incompleted. A tapped filled number (placed or given) cannot join the
+// batch: in cell selection it exits the mode and single-selects that cell,
+// exactly like a normal-mode tap; outside the mode it stays a no-op. The primary
+// `selected` tracks the last member of the set (or null when it empties) and the
+// mode flag follows the set-size transition (on from two cells, off at zero).
 export function toggleSelectedCell(state: GameState, cell: number): GameState {
   if (!validCell(cell)) return state;
   if (state.status !== "playing") return state;
   const next = copy(state);
   if (next.selectedCells.includes(cell)) {
     next.selectedCells = next.selectedCells.filter((i) => i !== cell);
+  } else if (state.cellSelectionMode && state.board[cell] !== 0) {
+    return select(state, cell);
   } else if (isIncompleted(state, cell)) {
     next.selectedCells.push(cell);
   } else {

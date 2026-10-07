@@ -86,10 +86,11 @@ export default function Page() {
   const onTapCell = useCallback(
     (index: number) =>
       commit((s) => {
-        if (s.cellSelectionMode) {
-          return toggleSelectedCell(s, index);
-        }
-        let next = select(s, index);
+        let next = s.cellSelectionMode ? toggleSelectedCell(s, index) : select(s, index);
+        // Tapping a placed number re-places it, which auto-erases the number
+        // from notes in its row, column, and box. Exiting cell selection by
+        // tapping a filled cell shares this path with normal-mode taps; `place`
+        // no-ops on givens.
         if (s.board[index] !== 0 && !s.givens[index]) {
           next = place(next, index, s.board[index]);
         }

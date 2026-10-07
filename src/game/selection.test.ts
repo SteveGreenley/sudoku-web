@@ -236,6 +236,81 @@ describe("toggleSelectedCell", () => {
   });
 });
 
+describe("toggleSelectedCell (filled-cell exit)", () => {
+  it("exits cell selection and single-selects a placed number", () => {
+    const state = withNumber(emptyBoard(), 40, 7);
+    const base = withSelection(state, [10, 20, 30]);
+    const next = toggleSelectedCell(base, 40);
+    expect(next.selectedCells).toEqual([40]);
+    expect(next.selected).toBe(40);
+    expect(next.cellSelectionMode).toBe(false);
+  });
+
+  it("exits cell selection and single-selects a given, attempting no placement", () => {
+    const state = withGiven(emptyBoard(), 5);
+    const base = withSelection(state, [10, 20, 30]);
+    const next = toggleSelectedCell(base, 5);
+    expect(next.selectedCells).toEqual([5]);
+    expect(next.selected).toBe(5);
+    expect(next.cellSelectionMode).toBe(false);
+    expect(next.board[5]).toBe(3);
+    expect(next.notes[5]).toEqual([]);
+  });
+
+  it("leaves the board and notes untouched: the exit is selection-only", () => {
+    const state = withNumber(emptyBoard(), 40, 7);
+    state.notes[30] = [2, 5];
+    const base = withSelection(state, [10, 20, 30]);
+    const next = toggleSelectedCell(base, 40);
+    expect(next.board).toEqual(state.board);
+    expect(next.notes).toEqual(state.notes);
+  });
+
+  it("still toggles an incompleted cell in and out of the batch, unchanged", () => {
+    const base = withSelection(emptyBoard(), [10, 20, 30]);
+    const added = toggleSelectedCell(base, 40);
+    expect(added.selectedCells).toEqual([10, 20, 30, 40]);
+    expect(added.selected).toBe(40);
+    expect(added.cellSelectionMode).toBe(true);
+    const removed = toggleSelectedCell(added, 30);
+    expect(removed.selectedCells).toEqual([10, 20, 40]);
+    expect(removed.selected).toBe(40);
+    expect(removed.cellSelectionMode).toBe(true);
+  });
+
+  it("leaves the stored notesMode untouched for placed, given, and incompleted taps", () => {
+    const state = withNumber(withGiven(emptyBoard(), 5), 40, 7);
+    state.notesMode = true;
+    const placed = toggleSelectedCell(withSelection(state, [10, 20]), 40);
+    const given = toggleSelectedCell(withSelection(state, [10, 20]), 5);
+    const incompleted = toggleSelectedCell(withSelection(state, [10, 20]), 30);
+    expect(placed.notesMode).toBe(true);
+    expect(given.notesMode).toBe(true);
+    expect(incompleted.notesMode).toBe(true);
+  });
+
+  it("reports the stored toggle through effectiveNotesMode once the mode has ended", () => {
+    const storedOff = withSelection(withNumber(emptyBoard(), 40, 7), [10, 20]);
+    const exitedOff = toggleSelectedCell(storedOff, 40);
+    expect(exitedOff.cellSelectionMode).toBe(false);
+    expect(effectiveNotesMode(exitedOff)).toBe(false);
+    const storedOn = withSelection(withNumber(emptyBoard(), 40, 7), [10, 20]);
+    storedOn.notesMode = true;
+    const exitedOn = toggleSelectedCell(storedOn, 40);
+    expect(effectiveNotesMode(exitedOn)).toBe(true);
+  });
+
+  it("round-trips the exit transition through a save", () => {
+    const storage = makeMemoryStorage();
+    const state = withNumber(emptyBoard(), 40, 7);
+    const base = withSelection(state, [10, 20, 30]);
+    base.notesMode = true;
+    const exited = toggleSelectedCell(base, 40);
+    saveState(exited, storage);
+    expect(loadState(storage)).toEqual(exited);
+  });
+});
+
 describe("applyNoteToSelection", () => {
   it("adds the note to every selected cell at once", () => {
     const base = withSelection(emptyBoard(), [10, 20, 30]);
