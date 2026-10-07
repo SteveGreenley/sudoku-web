@@ -10,9 +10,9 @@ interface CellProps {
   isHighlighted: boolean;
   isSameNumber: boolean;
   isSameNoteNumber: boolean;
+  isInSelection: boolean;
+  isSelecting: boolean;
   selectedValue: number;
-  onSelect: (cell: number) => void;
-  onPlace?: (cell: number, value: number) => void;
 }
 
 export function Cell({
@@ -25,9 +25,9 @@ export function Cell({
   isHighlighted,
   isSameNumber,
   isSameNoteNumber,
+  isInSelection,
+  isSelecting,
   selectedValue,
-  onSelect,
-  onPlace,
 }: CellProps) {
   const row = Math.floor(index / SIZE);
   const col = index % SIZE;
@@ -39,11 +39,17 @@ export function Cell({
     row === 2 || row === 5 || row === 8
       ? "border-b-2 border-b-zinc-800"
       : "border-b border-b-zinc-300";
-  const fill = isSelected
-    ? "bg-blue-300"
-    : isHighlighted
-      ? "bg-blue-100"
-      : "bg-white hover:bg-zinc-100";
+  const fill = isSelecting
+    ? "bg-white"
+    : isSelected
+      ? "bg-blue-300"
+      : isHighlighted
+        ? "bg-blue-100"
+        : "bg-white hover:bg-zinc-100";
+  const selectionMarker =
+    isSelecting && isInSelection
+      ? "outline-2 outline-dashed outline-blue-500 -outline-offset-2"
+      : "";
 
   const isMistake =
     value !== 0 && !isGiven && value !== solutionValue;
@@ -59,13 +65,6 @@ export function Cell({
       : "text-blue-600";
   const text = `${fontWeight} ${textColor}`;
 
-  const handleClick = () => {
-    onSelect(index);
-    if (onPlace && value !== 0 && !isGiven) {
-      onPlace(index, value);
-    }
-  };
-
   const noteGrid =
     notes.length > 0
       ? `grid grid-cols-3 gap-x-1 gap-y-0.5 p-0.5 text-[10px] leading-none text-zinc-500`
@@ -75,9 +74,9 @@ export function Cell({
   return (
     <button
       type="button"
-      onClick={handleClick}
+      data-cell-index={index}
       aria-label={`Row ${row + 1}, column ${col + 1}`}
-      className={`flex aspect-square select-none items-center justify-center text-xl leading-none ${right} ${bottom} ${fill} ${text}`}
+      className={`flex aspect-square select-none items-center justify-center text-xl leading-none ${right} ${bottom} ${fill} ${selectionMarker} ${text}`}
     >
       {value !== 0 ? (
         <span>{value}</span>

@@ -9,9 +9,12 @@ import { NewGameDialog } from "@/components/NewGameDialog";
 import { NumberPad } from "@/components/NumberPad";
 import { SolvedOverlay } from "@/components/SolvedOverlay";
 import {
+  addSelectedCells,
   checkWin,
+  clearSelection,
   createInitialState,
   discardState,
+  effectiveNotesMode,
   erase,
   getDisabledNumbers,
   getLastDifficulty,
@@ -22,6 +25,7 @@ import {
   select,
   startGame,
   toggleNote,
+  toggleSelectedCell,
   type Difficulty,
   type GameState,
   type StoragePort,
@@ -40,6 +44,7 @@ export default function Page() {
   const [state, setState] = useState<GameState>(createInitialState);
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const inputRef = useRef<HTMLDivElement>(null);
+  const boardGestureRef = useRef(false);
   const [showNewGame, setShowNewGame] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
@@ -56,7 +61,7 @@ export default function Page() {
     const saved = loadState(localStoragePort);
     if (saved && saved.status === "playing") {
       loadedFromPersistence.current = true;
-      setState(saved);
+      setState({ ...createInitialState(), ...saved });
       if (saved.difficulty) {
         setDifficulty(saved.difficulty);
       }
@@ -87,21 +92,42 @@ export default function Page() {
 
 
 
-  const onSelectCell = useCallback(
-    (cell: number) => setState((s) => select(s, cell)),
-    [],
-  );
-
-  const onPlace = useCallback(
-    (cell: number, value: number) => {
+  const onTapCell = useCallback(
+    (index: number) =>
       setState((s) => {
-        const next = place(s, cell, value);
+        let next: GameState;
+        if (s.cellSelectionMode) {
+          next = toggleSelectedCell(s, index);
+        } else {
+          next = select(s, index);
+          if (s.board[index] !== 0 && !s.givens[index]) {
+            next = place(next, index, s.board[index]);
+          }
+        }
         if (isClient) saveState(next, localStoragePort);
         return next;
-      });
-    },
+      }),
     [isClient],
   );
+
+  const onAddSelected = useCallback(
+    (index: number) =>
+      setState((s) => {
+        const next = addSelectedCells(s, [index]);
+        if (isClient) saveState(next, localStoragePort);
+        return next;
+      }),
+    [isClient],
+  );
+
+  // A board press that releases on the grid fires click on the common
+  // ancestor of the down/up targets; suppress it so a drag never clears the batch.
+  const onGestureStart = useCallback(() => {
+    boardGestureRef.current = false;
+  }, []);
+  const onGestureEnd = useCallback(() => {
+    boardGestureRef.current = true;
+  }, []);
 
   const onErase = useCallback(
     () => setState((s) => {
@@ -116,6 +142,17 @@ export default function Page() {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       const key = e.key;
+
+      // Escape cancels an in-progress multi-cell selection
+      if (key === "Escape" && state.cellSelectionMode) {
+        e.preventDefault();
+        setState((s) => {
+          const next = clearSelection(s);
+          if (isClient) saveState(next, localStoragePort);
+          return next;
+        });
+        return;
+      }
 
       // Arrow keys move selection
       if (state.selected !== null) {
@@ -153,7 +190,7 @@ export default function Page() {
       const digit = parseInt(key, 10);
       if (digit >= 1 && digit <= 9 && state.selected !== null) {
         setState((s) => {
-          const next = state.notesMode
+          const next = effectiveNotesMode(s)
             ? toggleNote(s, s.selected!, digit)
             : place(s, s.selected!, digit);
           if (isClient) saveState(next, localStoragePort);
@@ -173,7 +210,7 @@ export default function Page() {
         return;
       }
     },
-    [state.selected, state.notesMode, isClient],
+    [state.selected, state.cellSelectionMode, isClient],
   );
 
   const padOnPlace = useCallback(
@@ -256,18 +293,50 @@ export default function Page() {
     <main
       className="flex flex-1 flex-col items-center gap-6 py-10"
       onKeyDown={handleKeyDown}
+      onPointerDown={() => {
+        boardGestureRef.current = false;
+      }}
+      onClick={(e) => {
+        if (boardGestureRef.current) {
+          boardGestureRef.current = false;
+          return;
+        }
+        if (e.target instanceof Element && !e.target.closest("button")) {
+          setState((s) => {
+            if (!s.cellSelectionMode) return s;
+            const next = clearSelection(s);
+            if (isClient) saveState(next, localStoragePort);
+            return next;
+          });
+        }
+      }}
       ref={inputRef}
       tabIndex={-1}
     >
       <Header state={state} />
       <Controls
-        notesMode={state.notesMode}
-        onToggleNotesMode={() => setState((s) => ({ ...s, notesMode: !s.notesMode }))}
+        notesMode={effectiveNotesMode(state)}
+        onToggleNotesMode={() =>
+          setState((s) => {
+            if (!s.cellSelectionMode) {
+              return { ...s, notesMode: !s.notesMode };
+            }
+            const next = clearSelection(s);
+            if (isClient) saveState(next, localStoragePort);
+            return next;
+          })
+        }
         onNewGame={handleNewGamePrompt}
       />
-      <Board state={state} onSelectCell={onSelectCell} onPlace={onPlace} />
+      <Board
+        state={state}
+        onTapCell={onTapCell}
+        onAddSelected={onAddSelected}
+        onGestureStart={onGestureStart}
+        onGestureEnd={onGestureEnd}
+      />
       <NumberPad
-        notesMode={state.notesMode}
+        notesMode={effectiveNotesMode(state)}
         onPlace={padOnPlace}
         onToggleNote={padOnToggleNote}
         onErase={onErase}
