@@ -131,7 +131,7 @@ export function Board({
           isSameNoteNumber={highlights?.boldNotes.has(index) ?? false}
           selectedValue={state.board[state.selected ?? -1] ?? 0}
           isInSelection={state.selectedCells.includes(index)}
-          isSelecting={state.cellSelectionMode}
+          inSelectionMode={state.cellSelectionMode}
         />
       ))}
     </div>

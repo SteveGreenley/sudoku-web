@@ -45,7 +45,6 @@ const localStoragePort: StoragePort = {
 
 export default function Page() {
   const [state, setState] = useState<GameState>(createInitialState);
-  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const inputRef = useRef<HTMLDivElement>(null);
   const boardGestureRef = useRef(false);
   const [showNewGame, setShowNewGame] = useState(false);
@@ -55,72 +54,53 @@ export default function Page() {
   useEffect(() => { setIsClient(true); }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Track if state was loaded from persistence (to prevent new game startup)
-  const loadedFromPersistence = useRef(false);
   /* eslint-disable react-hooks/set-state-in-effect */
-  // On mount: try loading a saved game, or start a new one
+  // On mount: resume the saved game, or start a fresh one. Every game-starting
+  // path (resume, new game, solved-again) sets the state itself, so there is no
+  // separate effect reacting to difficulty changes.
   useEffect(() => {
     if (!isClient) return;
     const saved = loadState(localStoragePort);
     if (saved && saved.status === "playing") {
-      loadedFromPersistence.current = true;
-      setState({ ...createInitialState(), ...saved });
-      if (saved.difficulty) {
-        setDifficulty(saved.difficulty);
-      }
+      setState(saved);
       return;
     }
-    loadedFromPersistence.current = false;
     const last = getLastDifficulty(localStoragePort);
-    const initDifficulty = last ?? "easy";
-    setDifficulty(initDifficulty);
-    const id = setTimeout(() => setState(startGame(initDifficulty)), 0);
+    const id = setTimeout(() => setState(startGame(last ?? "easy")), 0);
     return () => clearTimeout(id);
   }, [isClient]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // When difficulty prop changes (via UI), start a new game with new difficulty
-  const prevDifficultyRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!isClient || prevDifficultyRef.current === null) {
-      prevDifficultyRef.current = difficulty;
-      return;
-    }
-    // Only start a new game if difficulty actually changed
-    if (prevDifficultyRef.current === difficulty) return;
-    prevDifficultyRef.current = difficulty;
-    const id = setTimeout(() => setState(startGame(difficulty)), 0);
-    return () => clearTimeout(id);
-  }, [isClient, difficulty]);
-
-
-
-  const onTapCell = useCallback(
-    (index: number) =>
+  // Apply a pure action to the game state and persist the result.
+  const commit = useCallback(
+    (fn: (s: GameState) => GameState) => {
       setState((s) => {
-        let next: GameState;
-        if (s.cellSelectionMode) {
-          next = toggleSelectedCell(s, index);
-        } else {
-          next = select(s, index);
-          if (s.board[index] !== 0 && !s.givens[index]) {
-            next = place(next, index, s.board[index]);
-          }
-        }
+        const next = fn(s);
         if (isClient) saveState(next, localStoragePort);
         return next;
-      }),
+      });
+    },
     [isClient],
   );
 
-  const onAddSelected = useCallback(
+  const onTapCell = useCallback(
     (index: number) =>
-      setState((s) => {
-        const next = addSelectedCells(s, [index]);
-        if (isClient) saveState(next, localStoragePort);
+      commit((s) => {
+        if (s.cellSelectionMode) {
+          return toggleSelectedCell(s, index);
+        }
+        let next = select(s, index);
+        if (s.board[index] !== 0 && !s.givens[index]) {
+          next = place(next, index, s.board[index]);
+        }
         return next;
       }),
-    [isClient],
+    [commit],
+  );
+
+  const onAddSelected = useCallback(
+    (index: number) => commit((s) => addSelectedCells(s, [index])),
+    [commit],
   );
 
   // A board press that releases on the grid fires click on the common
@@ -133,13 +113,12 @@ export default function Page() {
   }, []);
 
   const onErase = useCallback(
-    () => setState((s) => {
-      if (s.selected === null && !s.cellSelectionMode) return s;
-      const next = s.cellSelectionMode ? eraseSelection(s) : erase(s, s.selected!);
-      if (isClient) saveState(next, localStoragePort);
-      return next;
-    }),
-    [isClient],
+    () =>
+      commit((s) => {
+        if (s.selected === null && !s.cellSelectionMode) return s;
+        return s.cellSelectionMode ? eraseSelection(s) : erase(s, s.selected!);
+      }),
+    [commit],
   );
 
   const handleKeyDown = useCallback(
@@ -149,80 +128,42 @@ export default function Page() {
       // Escape cancels an in-progress multi-cell selection
       if (key === "Escape" && state.cellSelectionMode) {
         e.preventDefault();
-        setState((s) => {
-          const next = clearSelection(s);
-          if (isClient) saveState(next, localStoragePort);
-          return next;
-        });
+        commit((s) => clearSelection(s));
         return;
       }
 
       // Arrow keys move the selected cell; in cell selection mode they move the
-      // primary without collapsing the group (movePrimary), and the moved group
-      // is saved so it survives a reload.
-      if (state.selected !== null) {
-        if (key === "ArrowLeft") {
-          e.preventDefault();
-          const col = state.selected % 9;
-          const newCol = Math.max(0, col - 1);
-          setState((s) => {
-            const cell = s.selected! + (newCol - col);
-            const next = s.cellSelectionMode ? movePrimary(s, cell) : select(s, cell);
-            if (s.cellSelectionMode && isClient) saveState(next, localStoragePort);
-            return next;
-          });
-          return;
-        }
-        if (key === "ArrowRight") {
-          e.preventDefault();
-          const col = state.selected % 9;
-          const newCol = Math.min(8, col + 1);
-          setState((s) => {
-            const cell = s.selected! + (newCol - col);
-            const next = s.cellSelectionMode ? movePrimary(s, cell) : select(s, cell);
-            if (s.cellSelectionMode && isClient) saveState(next, localStoragePort);
-            return next;
-          });
-          return;
-        }
-        if (key === "ArrowUp") {
-          e.preventDefault();
-          const row = Math.floor(state.selected / 9);
-          const newRow = Math.max(0, row - 1);
-          setState((s) => {
-            const cell = s.selected! + (newRow - row) * 9;
-            const next = s.cellSelectionMode ? movePrimary(s, cell) : select(s, cell);
-            if (s.cellSelectionMode && isClient) saveState(next, localStoragePort);
-            return next;
-          });
-          return;
-        }
-        if (key === "ArrowDown") {
-          e.preventDefault();
-          const row = Math.floor(state.selected / 9);
-          const newRow = Math.min(8, row + 1);
-          setState((s) => {
-            const cell = s.selected! + (newRow - row) * 9;
-            const next = s.cellSelectionMode ? movePrimary(s, cell) : select(s, cell);
-            if (s.cellSelectionMode && isClient) saveState(next, localStoragePort);
-            return next;
-          });
-          return;
-        }
+      // primary without collapsing the group (movePrimary).
+      if (state.selected !== null && key.startsWith("Arrow")) {
+        e.preventDefault();
+        commit((s) => {
+          const sel = s.selected!;
+          const row = Math.floor(sel / 9);
+          const col = sel % 9;
+          const delta =
+            key === "ArrowLeft"
+              ? col > 0 ? -1 : 0
+              : key === "ArrowRight"
+                ? col < 8 ? 1 : 0
+                : key === "ArrowUp"
+                  ? row > 0 ? -9 : 0
+                  : row < 8 ? 9 : 0;
+          const cell = sel + delta;
+          return s.cellSelectionMode ? movePrimary(s, cell) : select(s, cell);
+        });
+        return;
       }
 
       // 1-9 place numbers or notes; in cell selection mode the note toggles
       // across the whole selection
       const digit = parseInt(key, 10);
       if (digit >= 1 && digit <= 9 && state.selected !== null) {
-        setState((s) => {
-          const next = s.cellSelectionMode
+        commit((s) => {
+          return s.cellSelectionMode
             ? applyNoteToSelection(s, digit)
             : effectiveNotesMode(s)
               ? toggleNote(s, s.selected!, digit)
               : place(s, s.selected!, digit);
-          if (isClient) saveState(next, localStoragePort);
-          return next;
         });
         return;
       }
@@ -230,45 +171,37 @@ export default function Page() {
       // Backspace erases the selected cell, or the whole selection in the mode
       if (key === "Backspace" && state.selected !== null) {
         e.preventDefault();
-        setState((s) => {
-          const next = s.cellSelectionMode ? eraseSelection(s) : erase(s, s.selected!);
-          if (isClient) saveState(next, localStoragePort);
-          return next;
+        commit((s) => {
+          return s.cellSelectionMode ? eraseSelection(s) : erase(s, s.selected!);
         });
         return;
       }
     },
-    [state.selected, state.cellSelectionMode, isClient],
+    [state.selected, state.cellSelectionMode, commit],
   );
 
   const padOnPlace = useCallback(
     (value: number) => {
       if (state.selected !== null) {
-        setState((s) => {
-          const next = place(s, s.selected!, value);
-          if (isClient) saveState(next, localStoragePort);
-          return next;
-        });
+        commit((s) => place(s, s.selected!, value));
       }
     },
-    [state.selected, isClient],
+    [state.selected, commit],
   );
 
   const padOnToggleNote = useCallback(
     (value: number) => {
       if (state.selected !== null) {
-        setState((s) => {
+        commit((s) => {
           // In cell selection mode the note toggles across every selected cell;
           // placement stays single-cell (padOnPlace) either way.
-          const next = s.cellSelectionMode
+          return s.cellSelectionMode
             ? applyNoteToSelection(s, value)
             : toggleNote(s, s.selected!, value);
-          if (isClient) saveState(next, localStoragePort);
-          return next;
         });
       }
     },
-    [state.selected, isClient],
+    [state.selected, commit],
   );
 
   useEffect(() => {
@@ -301,7 +234,6 @@ export default function Page() {
         discardState(localStoragePort);
       }
       const newGame = startGame(d);
-      setDifficulty(d);
       if (isClient) saveLastDifficulty(d, localStoragePort);
       setState(newGame);
     },
@@ -314,7 +246,6 @@ export default function Page() {
         discardState(localStoragePort);
       }
       const newGame = startGame(d);
-      setDifficulty(d);
       if (isClient) saveLastDifficulty(d, localStoragePort);
       setState(newGame);
     },
@@ -333,13 +264,8 @@ export default function Page() {
           boardGestureRef.current = false;
           return;
         }
-        if (e.target instanceof Element && !e.target.closest("button")) {
-          setState((s) => {
-            if (!s.cellSelectionMode) return s;
-            const next = clearSelection(s);
-            if (isClient) saveState(next, localStoragePort);
-            return next;
-          });
+        if (e.target instanceof Element && !e.target.closest("button") && state.cellSelectionMode) {
+          commit((s) => clearSelection(s));
         }
       }}
       ref={inputRef}

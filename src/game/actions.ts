@@ -91,7 +91,7 @@ export function place(state: GameState, cell: number, value: number): GameState 
   // multi-cell selection. `selected` is left where it was: placement is not a
   // selection action, and normal single-cell play keeps its selected cell.
   next.selectedCells = next.selectedCells.filter((i) => i !== cell);
-  next.cellSelectionMode = next.selectedCells.length >= 2;
+  next.cellSelectionMode = transitionFlag(state.cellSelectionMode, next.selectedCells.length);
   return checkWin(next);
 }
 
@@ -99,10 +99,7 @@ export function toggleNote(state: GameState, cell: number, value: number): GameS
   if (!validCell(cell) || !validValue(value)) return state;
   if (state.givens[cell] || state.board[cell] !== 0) return state;
   const next = copy(startGameTimer(state));
-  const notes = next.notes[cell];
-  next.notes[cell] = notes.includes(value)
-    ? notes.filter((n) => n !== value)
-    : [...notes, value].sort((a, b) => a - b);
+  toggleNoteOnCell(next, cell, value);
   return next;
 }
 
@@ -111,11 +108,7 @@ export function erase(state: GameState, cell: number): GameState {
   if (state.givens[cell]) return state;
   if (state.board[cell] === 0 && state.notes[cell].length === 0) return state;
   const next = copy(startGameTimer(state));
-  if (next.board[cell] !== 0) {
-    next.board[cell] = 0;
-  } else {
-    next.notes[cell] = [];
-  }
+  eraseCell(next, cell);
   return next;
 }
 
@@ -123,6 +116,38 @@ export function erase(state: GameState, cell: number): GameState {
 // incompleted cells may enter the multi-cell selection.
 function isIncompleted(state: GameState, cell: number): boolean {
   return !state.givens[cell] && state.board[cell] === 0;
+}
+
+// The cell-selection mode flag after a selection action with a set of the given
+// size. It turns on the first time the set reaches two cells and falls only
+// when the set becomes empty; trimming a set to one cell keeps the mode on
+// (notes stay on, the one cell stays marked).
+function transitionFlag(prev: boolean, size: number): boolean {
+  return size === 0 ? false : prev || size >= 2;
+}
+
+// Per-cell note toggle shared by `toggleNote` and `applyNoteToSelection`: adds
+// `value` if the cell does not have it, removes it if it does, keeping the
+// notes sorted. Mutates the caller-owned copy; a no-op for givens and
+// completed cells.
+function toggleNoteOnCell(state: GameState, cell: number, value: number): void {
+  if (state.givens[cell] || state.board[cell] !== 0) return;
+  const notes = state.notes[cell];
+  state.notes[cell] = notes.includes(value)
+    ? notes.filter((n) => n !== value)
+    : [...notes, value].sort((a, b) => a - b);
+}
+
+// Per-cell erase shared by `erase` and `eraseSelection`: clears the number on a
+// cell holding one, otherwise clears its notes. Mutates the caller-owned copy;
+// a no-op for givens.
+function eraseCell(state: GameState, cell: number): void {
+  if (state.givens[cell]) return;
+  if (state.board[cell] !== 0) {
+    state.board[cell] = 0;
+  } else {
+    state.notes[cell] = [];
+  }
 }
 
 // Toggles `value` on the notes of every cell in the multi-selection in a single
@@ -135,11 +160,7 @@ export function applyNoteToSelection(state: GameState, value: number): GameState
   if (!validValue(value) || state.selectedCells.length === 0) return state;
   const next = copy(startGameTimer(state));
   for (const cell of next.selectedCells) {
-    if (!isIncompleted(next, cell)) continue;
-    const notes = next.notes[cell];
-    next.notes[cell] = notes.includes(value)
-      ? notes.filter((n) => n !== value)
-      : [...notes, value].sort((a, b) => a - b);
+    toggleNoteOnCell(next, cell, value);
   }
   return next;
 }
@@ -163,12 +184,7 @@ export function eraseSelection(state: GameState): GameState {
   if (!hasSomething) return state;
   const next = copy(startGameTimer(state));
   for (const cell of next.selectedCells) {
-    if (next.givens[cell]) continue;
-    if (next.board[cell] !== 0) {
-      next.board[cell] = 0;
-    } else {
-      next.notes[cell] = [];
-    }
+    eraseCell(next, cell);
   }
   return next;
 }
@@ -176,8 +192,8 @@ export function eraseSelection(state: GameState): GameState {
 // Appends every valid, incompleted cell that is not already selected, in order.
 // A cell that is a given, completed, out of range, or already in the set is
 // skipped. The primary `selected` becomes the last cell added and the mode flag
-// is derived from the resulting set size. Returns the input state untouched when
-// nothing was added.
+// follows the set-size transition (on from two cells, off at zero). Returns the
+// input state untouched when nothing was added.
 export function addSelectedCells(state: GameState, cells: number[]): GameState {
   if (state.status !== "playing") return state;
   const set = [...state.selectedCells];
@@ -193,14 +209,15 @@ export function addSelectedCells(state: GameState, cells: number[]): GameState {
   const next = copy(state);
   next.selectedCells = set;
   next.selected = set[set.length - 1];
-  next.cellSelectionMode = set.length >= 2;
+  next.cellSelectionMode = transitionFlag(state.cellSelectionMode, set.length);
   return next;
 }
 
 // Toggles a single cell in the set: removes it if present, otherwise adds it if
 // it is incompleted. Givens and completed cells that are not already selected are
 // ignored. The primary `selected` tracks the last member of the set (or null when
-// it empties) and the mode flag is derived from the set size.
+// it empties) and the mode flag follows the set-size transition (on from two
+// cells, off at zero).
 export function toggleSelectedCell(state: GameState, cell: number): GameState {
   if (!validCell(cell)) return state;
   if (state.status !== "playing") return state;
@@ -214,7 +231,7 @@ export function toggleSelectedCell(state: GameState, cell: number): GameState {
   }
   next.selected =
     next.selectedCells.length > 0 ? next.selectedCells[next.selectedCells.length - 1] : null;
-  next.cellSelectionMode = next.selectedCells.length >= 2;
+  next.cellSelectionMode = transitionFlag(state.cellSelectionMode, next.selectedCells.length);
   return next;
 }
 
@@ -234,20 +251,20 @@ export function clearSelection(state: GameState): GameState {
 }
 
 // Moves the primary (last-touched) pointer to `cell` for arrow-key navigation in
-// cell selection mode. An incompleted `cell` is added to the set as its last
-// element when it is not already a member; a given or completed cell is taken as
-// the primary alone (a harmless cosmetic exception — the UI marks only actual
-// set members). The set is never shrunk and the mode flag is re-derived from its
-// size, so navigation never collapses the selection or exits the mode.
+// cell selection mode. The set is never grown: if `cell` is already a member it
+// is re-pointed to as the last element, otherwise it is taken as the primary
+// alone (a cosmetic exception — the UI marks only actual set members). The set
+// and the mode flag are otherwise untouched, so navigation keeps the batch
+// exactly as the user built it.
 export function movePrimary(state: GameState, cell: number): GameState {
   if (!validCell(cell)) return state;
   if (state.status !== "playing") return state;
   const next = copy(state);
   next.selected = cell;
-  if (isIncompleted(state, cell) && !next.selectedCells.includes(cell)) {
-    next.selectedCells.push(cell);
+  if (next.selectedCells.includes(cell)) {
+    next.selectedCells = [...next.selectedCells.filter((i) => i !== cell), cell];
   }
-  next.cellSelectionMode = next.selectedCells.length >= 2;
+  next.cellSelectionMode = transitionFlag(state.cellSelectionMode, next.selectedCells.length);
   return next;
 }
 
@@ -274,11 +291,15 @@ export function saveState(state: GameState, storage: StoragePort): void {
   storage.set(STORAGE_KEY, JSON.stringify(state));
 }
 
+// Parses the saved state and merges it over the current defaults, so a save
+// written before a field existed (e.g. the multi-cell selection fields) is
+// back-filled on load. Returns null when nothing is stored or it is corrupt.
 export function loadState(storage: StoragePort): GameState | null {
   try {
     const raw = storage.get(STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const saved = JSON.parse(raw) as Partial<GameState>;
+    return { ...createInitialState(), ...saved };
   } catch {
     return null;
   }

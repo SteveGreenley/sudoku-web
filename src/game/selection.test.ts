@@ -194,12 +194,13 @@ describe("toggleSelectedCell", () => {
     expect(next.cellSelectionMode).toBe(true);
   });
 
-  it("removes a non-primary member and keeps the primary", () => {
+  it("removes a non-primary member and keeps the primary, keeping the mode on", () => {
     const base = withSelection(emptyBoard(), [10, 20]);
     const next = toggleSelectedCell(base, 10);
     expect(next.selectedCells).toEqual([20]);
     expect(next.selected).toBe(20);
-    expect(next.cellSelectionMode).toBe(false);
+    // Trimmed to one cell: the mode stays on (notes on, the cell stays marked)
+    expect(next.cellSelectionMode).toBe(true);
   });
 
   it("removes the primary and re-points to the new last member", () => {
@@ -373,19 +374,20 @@ describe("eraseSelection", () => {
 });
 
 describe("movePrimary", () => {
-  it("moves the primary to an incompleted cell and adds it to the set as the last element", () => {
+  it("moves the primary to a new incompleted cell without adding it to the set", () => {
     const base = withSelection(emptyBoard(), [10, 20]);
     const next = movePrimary(base, 30);
     expect(next.selected).toBe(30);
-    expect(next.selectedCells).toEqual([10, 20, 30]);
+    // The batch stays exactly as the user built it: 30 is a cosmetic primary
+    expect(next.selectedCells).toEqual([10, 20]);
     expect(next.cellSelectionMode).toBe(true);
   });
 
-  it("does not duplicate a cell that is already a member", () => {
+  it("re-points an existing member to it, making it the last element", () => {
     const base = withSelection(emptyBoard(), [10, 20]);
     const next = movePrimary(base, 10);
     expect(next.selected).toBe(10);
-    expect(next.selectedCells).toEqual([10, 20]);
+    expect(next.selectedCells).toEqual([20, 10]);
     expect(next.cellSelectionMode).toBe(true);
   });
 
@@ -407,18 +409,22 @@ describe("movePrimary", () => {
     expect(next.cellSelectionMode).toBe(true);
   });
 
-  it("never shrinks the set or exits the mode", () => {
+  it("never grows or shrinks the set or exits the mode", () => {
     const base = withSelection(emptyBoard(), [10, 20, 30]);
     const next = movePrimary(base, 10);
     expect(next.selectedCells.length).toBe(3);
     expect(next.cellSelectionMode).toBe(true);
+    const toNewCell = movePrimary(base, 40);
+    expect(toNewCell.selectedCells.length).toBe(3);
+    expect(toNewCell.cellSelectionMode).toBe(true);
   });
 
-  it("turns the mode on once the move grows the set to two cells", () => {
+  it("keeps the mode on and the set unchanged when moving a trimmed single-cell selection", () => {
     const base = withSelection(emptyBoard(), [10]);
+    base.cellSelectionMode = true; // a set trimmed from two, still in the mode
     const next = movePrimary(base, 20);
     expect(next.selected).toBe(20);
-    expect(next.selectedCells).toEqual([10, 20]);
+    expect(next.selectedCells).toEqual([10]);
     expect(next.cellSelectionMode).toBe(true);
   });
 
@@ -499,7 +505,8 @@ describe("place (drops completed cells from the selection)", () => {
     expect(next.board[20]).toBe(5);
     expect(next.selectedCells).toEqual([10]);
     expect(next.selected).toBe(20); // unchanged: place is not a selection action
-    expect(next.cellSelectionMode).toBe(false);
+    // Trimmed to one cell: the mode stays on (notes on, the cell stays marked)
+    expect(next.cellSelectionMode).toBe(true);
   });
 
   it("does not touch the set or the primary when placing elsewhere", () => {
@@ -543,6 +550,22 @@ describe("save / load round-trip for the selection", () => {
     expect(restored!.cellSelectionMode).toBe(false);
     expect(restored!.selected).toBeNull();
   });
+
+  it("back-fills the selection fields on a save written before the feature", () => {
+    const storage = makeMemoryStorage();
+    const game = startGame("medium", seededRng(5));
+    const legacy = { ...game } as Partial<GameState>;
+    delete legacy.selectedCells;
+    delete legacy.cellSelectionMode;
+    storage.set("sudoku_state", JSON.stringify(legacy));
+    const restored = loadState(storage);
+    expect(restored!.selectedCells).toEqual([]);
+    expect(restored!.cellSelectionMode).toBe(false);
+    // Fields present in the old save are kept
+    expect(restored!.board).toEqual(game.board);
+    expect(restored!.difficulty).toBe("medium");
+    expect(restored!.status).toBe("playing");
+  });
 });
 
 describe("invariants across selection actions", () => {
@@ -561,8 +584,15 @@ describe("invariants across selection actions", () => {
     expect(state.selectedCells).toEqual([]);
   });
 
-  it("keeps `selected` equal to the last member after movePrimary onto an incompleted cell", () => {
+  it("lets the primary point at a non-member after movePrimary onto a new cell", () => {
     const state = movePrimary(withSelection(emptyBoard(), [10, 20]), 30);
+    // Accepted exception: 30 is a cosmetic primary, the batch stays as built
+    expect(state.selected).toBe(30);
+    expect(state.selectedCells).toEqual([10, 20]);
+  });
+
+  it("keeps `selected` equal to the last member after movePrimary re-points an existing member", () => {
+    const state = movePrimary(withSelection(emptyBoard(), [10, 20]), 10);
     expect(state.selected).toBe(state.selectedCells[state.selectedCells.length - 1]);
   });
 
@@ -576,13 +606,15 @@ describe("invariants across selection actions", () => {
     expect(next.selectedCells).toEqual([30, 40]);
   });
 
-  it("derives the mode flag purely from the set size", () => {
+  it("keeps the mode flag on while the set is trimmed to one cell, and off when it empties", () => {
     let state = emptyBoard();
     state = addSelectedCells(state, [10]);
-    expect(state.cellSelectionMode).toBe(false);
+    expect(state.cellSelectionMode).toBe(false); // a fresh single tap
     state = addSelectedCells(state, [20]);
-    expect(state.cellSelectionMode).toBe(true);
+    expect(state.cellSelectionMode).toBe(true); // on from two cells
     state = toggleSelectedCell(state, 20);
-    expect(state.cellSelectionMode).toBe(false);
+    expect(state.cellSelectionMode).toBe(true); // trimming to one keeps the mode
+    state = toggleSelectedCell(state, 10);
+    expect(state.cellSelectionMode).toBe(false); // off at zero
   });
 });

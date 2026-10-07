@@ -11,7 +11,7 @@ interface CellProps {
   isSameNumber: boolean;
   isSameNoteNumber: boolean;
   isInSelection: boolean;
-  isSelecting: boolean;
+  inSelectionMode: boolean;
   selectedValue: number;
 }
 
@@ -26,7 +26,7 @@ export function Cell({
   isSameNumber,
   isSameNoteNumber,
   isInSelection,
-  isSelecting,
+  inSelectionMode,
   selectedValue,
 }: CellProps) {
   const row = Math.floor(index / SIZE);
@@ -39,7 +39,7 @@ export function Cell({
     row === 2 || row === 5 || row === 8
       ? "border-b-2 border-b-zinc-800"
       : "border-b border-b-zinc-300";
-  const fill = isSelecting
+  const fill = inSelectionMode
     ? "bg-white"
     : isSelected
       ? "bg-blue-300"
@@ -47,7 +47,7 @@ export function Cell({
         ? "bg-blue-100"
         : "bg-white hover:bg-zinc-100";
   const selectionMarker =
-    isSelecting && isInSelection
+    inSelectionMode && isInSelection
       ? "outline-2 outline-dashed outline-blue-500 -outline-offset-2"
       : "";
 
