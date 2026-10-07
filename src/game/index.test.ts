@@ -63,6 +63,8 @@ describe("createInitialState", () => {
       board: Array(CELLS).fill(0),
       notes: Array.from({ length: CELLS }, () => []),
       selected: null,
+      selectedCells: [],
+      cellSelectionMode: false,
       notesMode: false,
       elapsedMs: 0,
       startTime: undefined,
