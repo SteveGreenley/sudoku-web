@@ -179,6 +179,80 @@ describe("addSelectedCells", () => {
   });
 });
 
+describe("addSelectedCells (a fresh batch prunes a pre-selected filled cell)", () => {
+  it("excludes the filled cell a normal-mode single-select mirrored into the set", () => {
+    const state = withNumber(emptyBoard(), 40, 7);
+    const tapped = select(state, 40);
+    const next = addSelectedCells(tapped, [10]);
+    expect(next.selectedCells).toEqual([10]);
+    expect(next.selected).toBe(10);
+    expect(next.cellSelectionMode).toBe(false);
+  });
+
+  it("keeps growing across subsequent sweeps, with the mode on at two cells", () => {
+    const state = withNumber(emptyBoard(), 40, 7);
+    const tapped = select(state, 40);
+    const afterFirst = addSelectedCells(tapped, [10]);
+    const next = addSelectedCells(afterFirst, [20]);
+    expect(next.selectedCells).toEqual([10, 20]);
+    expect(next.selected).toBe(20);
+    expect(next.cellSelectionMode).toBe(true);
+    expect(next.selectedCells).not.toContain(40);
+  });
+
+  it("keeps the pre-selected cell when it is incompleted", () => {
+    const tapped = select(emptyBoard(), 10);
+    const next = addSelectedCells(tapped, [20]);
+    expect(next.selectedCells).toEqual([10, 20]);
+    expect(next.selected).toBe(20);
+    expect(next.cellSelectionMode).toBe(true);
+  });
+
+  it("keeps every existing member of an all-incompleted batch in cell-selection mode", () => {
+    const base = withSelection(emptyBoard(), [10, 20, 30]);
+    const next = addSelectedCells(base, [40]);
+    expect(next.selectedCells).toEqual([10, 20, 30, 40]);
+    expect(next.selected).toBe(40);
+    expect(next.cellSelectionMode).toBe(true);
+  });
+
+  it("is a no-op when the sweep adds nothing after the prune", () => {
+    const state = withNumber(emptyBoard(), 40, 7);
+    const tapped = select(state, 40);
+    expect(addSelectedCells(tapped, [40])).toBe(tapped);
+  });
+
+  it("never adds a note on the pre-selected filled cell across a batch note", () => {
+    const state = withNumber(emptyBoard(), 40, 7);
+    const batch = addSelectedCells(select(state, 40), [10, 20]);
+    const next = applyNoteToSelection(batch, 5);
+    expect(next.board[40]).toBe(7);
+    expect(next.notes[40]).toEqual([]);
+    expect(next.notes[10]).toEqual([5]);
+    expect(next.notes[20]).toEqual([5]);
+  });
+
+  it("never wipes the pre-selected filled cell's number across a batch erase", () => {
+    const state = withNumber(emptyBoard(), 40, 7);
+    const batch = addSelectedCells(select(state, 40), [10, 20]);
+    batch.notes[10] = [2, 5];
+    batch.notes[20] = [4];
+    const next = eraseSelection(batch);
+    expect(next.board[40]).toBe(7);
+    expect(next.notes[40]).toEqual([]);
+    expect(next.notes[10]).toEqual([]);
+    expect(next.notes[20]).toEqual([]);
+  });
+
+  it("still single-selects a filled cell on a plain tap in normal mode", () => {
+    const state = withNumber(emptyBoard(), 40, 7);
+    const next = select(state, 40);
+    expect(next.selected).toBe(40);
+    expect(next.selectedCells).toEqual([40]);
+    expect(next.cellSelectionMode).toBe(false);
+  });
+});
+
 describe("toggleSelectedCell", () => {
   it("adds an incompleted cell that is not yet selected", () => {
     const next = toggleSelectedCell(emptyBoard(), 10);

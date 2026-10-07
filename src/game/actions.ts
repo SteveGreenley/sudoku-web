@@ -191,12 +191,18 @@ export function eraseSelection(state: GameState): GameState {
 
 // Appends every valid, incompleted cell that is not already selected, in order.
 // A cell that is a given, completed, out of range, or already in the set is
-// skipped. The primary `selected` becomes the last cell added and the mode flag
-// follows the set-size transition (on from two cells, off at zero). Returns the
-// input state untouched when nothing was added.
+// skipped. When starting a fresh batch from normal mode, non-incompleted members
+// of the pre-existing set are pruned first — a single-select may have mirrored a
+// filled cell into it, and the swept cells must form the batch on their own. In
+// cell selection mode the pre-existing batch is kept as-is. The primary `selected`
+// becomes the last cell added and the mode flag follows the set-size transition
+// (on from two cells, off at zero). Returns the input state untouched when
+// nothing was added.
 export function addSelectedCells(state: GameState, cells: number[]): GameState {
   if (state.status !== "playing") return state;
-  const set = [...state.selectedCells];
+  const set = state.cellSelectionMode
+    ? [...state.selectedCells]
+    : state.selectedCells.filter((i) => isIncompleted(state, i));
   let added = false;
   for (const cell of cells) {
     if (!validCell(cell)) continue;
