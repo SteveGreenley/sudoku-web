@@ -291,6 +291,7 @@ export default function Page() {
         state={state}
         onTapCell={onTapCell}
         onAddSelected={onAddSelected}
+        onClearSelection={() => commit(clearSelection)}
         onGestureStart={onGestureStart}
         onGestureEnd={onGestureEnd}
       />

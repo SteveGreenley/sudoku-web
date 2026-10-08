@@ -189,28 +189,37 @@ describe("addSelectedCells (a fresh batch prunes a pre-selected filled cell)", (
     expect(next.cellSelectionMode).toBe(false);
   });
 
-  it("a sweep from normal mode starts fresh, not extending a previous sweep's result", () => {
+  it("subsequent sweeps from normal mode accumulate cells, building up the batch", () => {
     const state = withNumber(emptyBoard(), 40, 7);
     const tapped = select(state, 40);
     const afterFirst = addSelectedCells(tapped, [10]);
     const next = addSelectedCells(afterFirst, [20]);
-    expect(next.selectedCells).toEqual([20]);
+    expect(next.selectedCells).toEqual([10, 20]);
     expect(next.selected).toBe(20);
-    expect(next.cellSelectionMode).toBe(false);
+    expect(next.cellSelectionMode).toBe(true);
     expect(next.selectedCells).not.toContain(40);
   });
 
-  it("a fresh batch from normal mode discards the pre-selected incompleted cell", () => {
-    const tapped = select(emptyBoard(), 10);
-    const next = addSelectedCells(tapped, [20]);
+  it("a fresh batch from normal mode starts with an empty set and adds cells", () => {
+    const base = emptyBoard();
+    const next = addSelectedCells(base, [20]);
     expect(next.selectedCells).toEqual([20]);
     expect(next.selected).toBe(20);
     expect(next.cellSelectionMode).toBe(false);
   });
 
-  it("discards a normal-mode pre-selection and starts fresh with multiple cells", () => {
-    const tapped = select(emptyBoard(), 10);
-    const next = addSelectedCells(tapped, [20, 30]);
+  it("a second sweep from normal mode adds to the existing batch", () => {
+    const base = emptyBoard();
+    const afterFirst = addSelectedCells(base, [20]);
+    const next = addSelectedCells(afterFirst, [30]);
+    expect(next.selectedCells).toEqual([20, 30]);
+    expect(next.selected).toBe(30);
+    expect(next.cellSelectionMode).toBe(true);
+  });
+
+  it("a fresh batch with multiple cells at once starts cell-selection mode", () => {
+    const base = emptyBoard();
+    const next = addSelectedCells(base, [20, 30]);
     expect(next.selectedCells).toEqual([20, 30]);
     expect(next.selected).toBe(30);
     expect(next.cellSelectionMode).toBe(true);
@@ -765,13 +774,11 @@ describe("invariants across selection actions", () => {
 
   it("keeps the mode flag on while the set is trimmed to one cell, and off when it empties", () => {
     let state = emptyBoard();
-    state = addSelectedCells(state, [10]);
-    expect(state.cellSelectionMode).toBe(false); // a fresh single tap
-    state = addSelectedCells(state, [20, 30]);
-    expect(state.cellSelectionMode).toBe(true); // on from two cells (single sweep)
-    state = toggleSelectedCell(state, 30);
-    expect(state.cellSelectionMode).toBe(true); // trimming to one keeps the mode
+    state = addSelectedCells(state, [10, 20]);
+    expect(state.cellSelectionMode).toBe(true); // mode on from two cells
     state = toggleSelectedCell(state, 20);
+    expect(state.cellSelectionMode).toBe(true); // trimming to one keeps the mode
+    state = toggleSelectedCell(state, 10);
     expect(state.cellSelectionMode).toBe(false); // off at zero
   });
 });

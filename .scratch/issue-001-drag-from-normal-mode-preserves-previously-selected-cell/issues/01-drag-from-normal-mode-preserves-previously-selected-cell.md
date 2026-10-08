@@ -60,19 +60,32 @@ Run the full test suite after the fix. Specifically verify these scenarios still
 
 ### Fix applied
 
-`addSelectedCells` in `src/game/actions.ts` (line 203-222): when `cellSelectionMode` is `false` (normal mode), the function now starts with an empty set instead of filtering `selectedCells` for incompleted cells. The sweep starts empty, so the dragged cells form the batch on their own.
+The fix moves the pre-selection clearing from `addSelectedCells` to the UI layer:
+
+1. **`src/components/Board.tsx`** — When the drag starts (pointer moves past threshold), calls `clearSelection()` which clears `selectedCells` and `selected`. This discards the pre-selected cell from `select()` before any drag cells are added.
+
+2. **`src/game/actions.ts`** — `addSelectedCells` reverts to its original logic: in normal mode, the sweep starts with `selectedCells.filter(isIncompleted)` which keeps cells from previous drag calls and prunes non-incompleted cells.
+
+3. **`src/app/page.tsx`** — Passes `onClearSelection={() => commit(clearSelection)}` to `Board`.
+
+### Regression fix (ticket #02)
+
+The first attempt at this fix went too far — it made `addSelectedCells` start with an empty set in normal mode, causing each drag call to be independent. See `.scratch/issue-002-drag-from-normal-mode-loses-previous-drag-cells/issues/02-drag-from-normal-mode-loses-previous-drag-cells.md` for the fix.
 
 ### Tests updated
 
-- `selection.test.ts:203-216` — replaced "keeps the pre-selected cell when it is incompleted" with "a fresh batch from normal mode discards the pre-selected incompleted cell" and added a second test for multi-cell fresh batches.
-- `selection.test.ts:192-200` — updated "keeps growing across subsequent sweeps" to "each sweep from normal mode starts fresh" with corrected expectations.
-- `selection.test.ts:766-777` — updated mode-flag lifecycle test to use a two-cell sweep that correctly triggers cell-selection mode.
+- `selection.test.ts` — Replaced tests that assumed `addSelectedCells` discards the pre-selection with tests that reflect the correct behavior (sweep accumulates cells across drag calls).
+- `"subsequent sweeps from normal mode accumulate cells, building up the batch"` — 2 sequential sweeps correctly build a batch.
+- `"a fresh batch from normal mode starts with an empty set and adds cells"` — single sweep, single cell.
+- `"a second sweep from normal mode adds to the existing batch"` — 2 sweeps, 2 cells.
+- `"a fresh batch with multiple cells at once starts cell-selection mode"` — single sweep, multiple cells.
 
 ### Verification
 
-All 147 tests pass. The following scenarios verified as still working:
+All 148 tests pass. The following scenarios verified in browser:
 
-- Drag on a filled cell from normal mode — filled cell pruned, sweep starts fresh
-- Extending an existing batch in cell-selection mode — pre-existing batch preserved
-- Single-cell drag from normal mode — mode stays off
-- Drag across a single incompleted cell from normal mode — mode stays off
+- Fresh game: drag across 2 cells → both selected, notes mode on
+- Click + drag: clicked cell discarded, dragged cells selected, notes mode on
+- Click + drag 1 cell: single cell selected, mode stays off
+- Cell-selection mode: existing batch preserved, new cells added
+- Drag from filled cell: filled cell pruned, dragged cells selected

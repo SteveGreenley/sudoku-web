@@ -8,6 +8,7 @@ interface BoardProps {
   state: GameState;
   onTapCell: (index: number) => void;
   onAddSelected: (index: number) => void;
+  onClearSelection: () => void;
   onGestureStart: () => void;
   onGestureEnd: () => void;
 }
@@ -25,6 +26,7 @@ export function Board({
   state,
   onTapCell,
   onAddSelected,
+  onClearSelection,
   onGestureStart,
   onGestureEnd,
 }: BoardProps) {
@@ -40,12 +42,14 @@ export function Board({
   const stateRef = useRef(state);
   const onTapCellRef = useRef(onTapCell);
   const onAddSelectedRef = useRef(onAddSelected);
+  const onClearSelectionRef = useRef(onClearSelection);
   const onGestureStartRef = useRef(onGestureStart);
   const onGestureEndRef = useRef(onGestureEnd);
   useEffect(() => {
     stateRef.current = state;
     onTapCellRef.current = onTapCell;
     onAddSelectedRef.current = onAddSelected;
+    onClearSelectionRef.current = onClearSelection;
     onGestureStartRef.current = onGestureStart;
     onGestureEndRef.current = onGestureEnd;
   });
@@ -73,6 +77,7 @@ export function Board({
         const dy = e.clientY - startYRef.current;
         if (Math.hypot(dx, dy) <= DRAG_THRESHOLD_PX) return;
         isDraggingRef.current = true;
+        onClearSelectionRef.current();
       }
       if (!canDragRef.current) return;
       const index = cellIndexAt(e.clientX, e.clientY);
