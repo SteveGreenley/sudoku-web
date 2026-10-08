@@ -9,19 +9,26 @@ import { NewGameDialog } from "@/components/NewGameDialog";
 import { NumberPad } from "@/components/NumberPad";
 import { SolvedOverlay } from "@/components/SolvedOverlay";
 import {
+  addSelectedCells,
+  applyNoteToSelection,
   checkWin,
+  clearSelection,
   createInitialState,
   discardState,
+  effectiveNotesMode,
   erase,
+  eraseSelection,
   getDisabledNumbers,
   getLastDifficulty,
   loadState,
+  movePrimary,
   place,
   saveLastDifficulty,
   saveState,
   select,
   startGame,
   toggleNote,
+  toggleSelectedCell,
   type Difficulty,
   type GameState,
   type StoragePort,
@@ -38,8 +45,8 @@ const localStoragePort: StoragePort = {
 
 export default function Page() {
   const [state, setState] = useState<GameState>(createInitialState);
-  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const inputRef = useRef<HTMLDivElement>(null);
+  const boardGestureRef = useRef(false);
   const [showNewGame, setShowNewGame] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
@@ -47,55 +54,28 @@ export default function Page() {
   useEffect(() => { setIsClient(true); }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Track if state was loaded from persistence (to prevent new game startup)
-  const loadedFromPersistence = useRef(false);
   /* eslint-disable react-hooks/set-state-in-effect */
-  // On mount: try loading a saved game, or start a new one
+  // On mount: resume the saved game, or start a fresh one. Every game-starting
+  // path (resume, new game, solved-again) sets the state itself, so there is no
+  // separate effect reacting to difficulty changes.
   useEffect(() => {
     if (!isClient) return;
     const saved = loadState(localStoragePort);
     if (saved && saved.status === "playing") {
-      loadedFromPersistence.current = true;
       setState(saved);
-      if (saved.difficulty) {
-        setDifficulty(saved.difficulty);
-      }
       return;
     }
-    loadedFromPersistence.current = false;
     const last = getLastDifficulty(localStoragePort);
-    const initDifficulty = last ?? "easy";
-    setDifficulty(initDifficulty);
-    const id = setTimeout(() => setState(startGame(initDifficulty)), 0);
+    const id = setTimeout(() => setState(startGame(last ?? "easy")), 0);
     return () => clearTimeout(id);
   }, [isClient]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // When difficulty prop changes (via UI), start a new game with new difficulty
-  const prevDifficultyRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!isClient || prevDifficultyRef.current === null) {
-      prevDifficultyRef.current = difficulty;
-      return;
-    }
-    // Only start a new game if difficulty actually changed
-    if (prevDifficultyRef.current === difficulty) return;
-    prevDifficultyRef.current = difficulty;
-    const id = setTimeout(() => setState(startGame(difficulty)), 0);
-    return () => clearTimeout(id);
-  }, [isClient, difficulty]);
-
-
-
-  const onSelectCell = useCallback(
-    (cell: number) => setState((s) => select(s, cell)),
-    [],
-  );
-
-  const onPlace = useCallback(
-    (cell: number, value: number) => {
+  // Apply a pure action to the game state and persist the result.
+  const commit = useCallback(
+    (fn: (s: GameState) => GameState) => {
       setState((s) => {
-        const next = place(s, cell, value);
+        const next = fn(s);
         if (isClient) saveState(next, localStoragePort);
         return next;
       });
@@ -103,103 +83,126 @@ export default function Page() {
     [isClient],
   );
 
+  const onTapCell = useCallback(
+    (index: number) =>
+      commit((s) => {
+        let next = s.cellSelectionMode ? toggleSelectedCell(s, index) : select(s, index);
+        // Tapping a placed number re-places it, which auto-erases the number
+        // from notes in its row, column, and box. Exiting cell selection by
+        // tapping a filled cell shares this path with normal-mode taps; `place`
+        // no-ops on givens.
+        if (s.board[index] !== 0 && !s.givens[index]) {
+          next = place(next, index, s.board[index]);
+        }
+        return next;
+      }),
+    [commit],
+  );
+
+  const onAddSelected = useCallback(
+    (index: number) => commit((s) => addSelectedCells(s, [index])),
+    [commit],
+  );
+
+  // A board press that releases on the grid fires click on the common
+  // ancestor of the down/up targets; suppress it so a drag never clears the batch.
+  const onGestureStart = useCallback(() => {
+    boardGestureRef.current = false;
+  }, []);
+  const onGestureEnd = useCallback(() => {
+    boardGestureRef.current = true;
+  }, []);
+
   const onErase = useCallback(
-    () => setState((s) => {
-      if (s.selected === null) return s;
-      const next = erase(s, s.selected);
-      if (isClient) saveState(next, localStoragePort);
-      return next;
-    }),
-    [isClient],
+    () =>
+      commit((s) => {
+        if (s.selected === null && !s.cellSelectionMode) return s;
+        return s.cellSelectionMode ? eraseSelection(s) : erase(s, s.selected!);
+      }),
+    [commit],
   );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       const key = e.key;
 
-      // Arrow keys move selection
-      if (state.selected !== null) {
-        if (key === "ArrowLeft") {
-          e.preventDefault();
-          const col = state.selected % 9;
-          const newCol = Math.max(0, col - 1);
-          setState((s) => select(s, s.selected! + (newCol - col)));
-          return;
-        }
-        if (key === "ArrowRight") {
-          e.preventDefault();
-          const col = state.selected % 9;
-          const newCol = Math.min(8, col + 1);
-          setState((s) => select(s, s.selected! + (newCol - col)));
-          return;
-        }
-        if (key === "ArrowUp") {
-          e.preventDefault();
-          const row = Math.floor(state.selected / 9);
-          const newRow = Math.max(0, row - 1);
-          setState((s) => select(s, s.selected! + (newRow - row) * 9));
-          return;
-        }
-        if (key === "ArrowDown") {
-          e.preventDefault();
-          const row = Math.floor(state.selected / 9);
-          const newRow = Math.min(8, row + 1);
-          setState((s) => select(s, s.selected! + (newRow - row) * 9));
-          return;
-        }
+      // Escape cancels an in-progress multi-cell selection
+      if (key === "Escape" && state.cellSelectionMode) {
+        e.preventDefault();
+        commit((s) => clearSelection(s));
+        return;
       }
 
-      // 1-9 place numbers or notes
-      const digit = parseInt(key, 10);
-      if (digit >= 1 && digit <= 9 && state.selected !== null) {
-        setState((s) => {
-          const next = state.notesMode
-            ? toggleNote(s, s.selected!, digit)
-            : place(s, s.selected!, digit);
-          if (isClient) saveState(next, localStoragePort);
-          return next;
+      // Arrow keys move the selected cell; in cell selection mode they move the
+      // primary without collapsing the group (movePrimary).
+      if (state.selected !== null && key.startsWith("Arrow")) {
+        e.preventDefault();
+        commit((s) => {
+          const sel = s.selected!;
+          const row = Math.floor(sel / 9);
+          const col = sel % 9;
+          const delta =
+            key === "ArrowLeft"
+              ? col > 0 ? -1 : 0
+              : key === "ArrowRight"
+                ? col < 8 ? 1 : 0
+                : key === "ArrowUp"
+                  ? row > 0 ? -9 : 0
+                  : row < 8 ? 9 : 0;
+          const cell = sel + delta;
+          return s.cellSelectionMode ? movePrimary(s, cell) : select(s, cell);
         });
         return;
       }
 
-      // Backspace erases the selected cell
+      // 1-9 place numbers or notes; in cell selection mode the note toggles
+      // across the whole selection
+      const digit = parseInt(key, 10);
+      if (digit >= 1 && digit <= 9 && state.selected !== null) {
+        commit((s) => {
+          return s.cellSelectionMode
+            ? applyNoteToSelection(s, digit)
+            : effectiveNotesMode(s)
+              ? toggleNote(s, s.selected!, digit)
+              : place(s, s.selected!, digit);
+        });
+        return;
+      }
+
+      // Backspace erases the selected cell, or the whole selection in the mode
       if (key === "Backspace" && state.selected !== null) {
         e.preventDefault();
-        setState((s) => {
-          const next = erase(s, s.selected!);
-          if (isClient) saveState(next, localStoragePort);
-          return next;
+        commit((s) => {
+          return s.cellSelectionMode ? eraseSelection(s) : erase(s, s.selected!);
         });
         return;
       }
     },
-    [state.selected, state.notesMode, isClient],
+    [state.selected, state.cellSelectionMode, commit],
   );
 
   const padOnPlace = useCallback(
     (value: number) => {
       if (state.selected !== null) {
-        setState((s) => {
-          const next = place(s, s.selected!, value);
-          if (isClient) saveState(next, localStoragePort);
-          return next;
-        });
+        commit((s) => place(s, s.selected!, value));
       }
     },
-    [state.selected, isClient],
+    [state.selected, commit],
   );
 
   const padOnToggleNote = useCallback(
     (value: number) => {
       if (state.selected !== null) {
-        setState((s) => {
-          const next = toggleNote(s, s.selected!, value);
-          if (isClient) saveState(next, localStoragePort);
-          return next;
+        commit((s) => {
+          // In cell selection mode the note toggles across every selected cell;
+          // placement stays single-cell (padOnPlace) either way.
+          return s.cellSelectionMode
+            ? applyNoteToSelection(s, value)
+            : toggleNote(s, s.selected!, value);
         });
       }
     },
-    [state.selected, isClient],
+    [state.selected, commit],
   );
 
   useEffect(() => {
@@ -232,7 +235,6 @@ export default function Page() {
         discardState(localStoragePort);
       }
       const newGame = startGame(d);
-      setDifficulty(d);
       if (isClient) saveLastDifficulty(d, localStoragePort);
       setState(newGame);
     },
@@ -245,7 +247,6 @@ export default function Page() {
         discardState(localStoragePort);
       }
       const newGame = startGame(d);
-      setDifficulty(d);
       if (isClient) saveLastDifficulty(d, localStoragePort);
       setState(newGame);
     },
@@ -256,18 +257,46 @@ export default function Page() {
     <main
       className="flex flex-1 flex-col items-center gap-6 py-10"
       onKeyDown={handleKeyDown}
+      onPointerDown={() => {
+        boardGestureRef.current = false;
+      }}
+      onClick={(e) => {
+        if (boardGestureRef.current) {
+          boardGestureRef.current = false;
+          return;
+        }
+        if (e.target instanceof Element && !e.target.closest("button") && state.cellSelectionMode) {
+          commit((s) => clearSelection(s));
+        }
+      }}
       ref={inputRef}
       tabIndex={-1}
     >
       <Header state={state} />
       <Controls
-        notesMode={state.notesMode}
-        onToggleNotesMode={() => setState((s) => ({ ...s, notesMode: !s.notesMode }))}
+        notesMode={effectiveNotesMode(state)}
+        onToggleNotesMode={() =>
+          setState((s) => {
+            if (!s.cellSelectionMode) {
+              return { ...s, notesMode: !s.notesMode };
+            }
+            const next = clearSelection(s);
+            if (isClient) saveState(next, localStoragePort);
+            return next;
+          })
+        }
         onNewGame={handleNewGamePrompt}
       />
-      <Board state={state} onSelectCell={onSelectCell} onPlace={onPlace} />
+      <Board
+        state={state}
+        onTapCell={onTapCell}
+        onAddSelected={onAddSelected}
+        onClearSelection={() => commit(clearSelection)}
+        onGestureStart={onGestureStart}
+        onGestureEnd={onGestureEnd}
+      />
       <NumberPad
-        notesMode={state.notesMode}
+        notesMode={effectiveNotesMode(state)}
         onPlace={padOnPlace}
         onToggleNote={padOnToggleNote}
         onErase={onErase}

@@ -1,4 +1,5 @@
 import { SIZE } from "@/game";
+import { sameNumberStyle } from "./sameNumberStyle";
 
 interface CellProps {
   index: number;
@@ -10,9 +11,9 @@ interface CellProps {
   isHighlighted: boolean;
   isSameNumber: boolean;
   isSameNoteNumber: boolean;
+  isInSelection: boolean;
+  inSelectionMode: boolean;
   selectedValue: number;
-  onSelect: (cell: number) => void;
-  onPlace?: (cell: number, value: number) => void;
 }
 
 export function Cell({
@@ -25,9 +26,9 @@ export function Cell({
   isHighlighted,
   isSameNumber,
   isSameNoteNumber,
+  isInSelection,
+  inSelectionMode,
   selectedValue,
-  onSelect,
-  onPlace,
 }: CellProps) {
   const row = Math.floor(index / SIZE);
   const col = index % SIZE;
@@ -39,32 +40,41 @@ export function Cell({
     row === 2 || row === 5 || row === 8
       ? "border-b-2 border-b-zinc-800"
       : "border-b border-b-zinc-300";
-  const fill = isSelected
-    ? "bg-blue-300"
-    : isHighlighted
-      ? "bg-blue-100"
-      : "bg-white hover:bg-zinc-100";
+  const sameNumber = sameNumberStyle(
+    value,
+    isSelected,
+    isSameNumber,
+    isSameNoteNumber,
+  );
+  const baseFill = inSelectionMode
+    ? "bg-white"
+    : isSelected
+      ? "bg-blue-300"
+      : isHighlighted
+        ? "bg-blue-100"
+        : "bg-white hover:bg-zinc-100";
+  const fill =
+    sameNumber.background && sameNumber.background.startsWith("#")
+      ? ""
+      : sameNumber.background ?? baseFill;
+  const bgStyle = sameNumber.background?.startsWith("#") ? { background: sameNumber.background } : undefined;
+  const selectionMarker =
+    inSelectionMode && isInSelection
+      ? "outline-2 outline-dashed outline-blue-500 -outline-offset-2"
+      : "";
 
   const isMistake =
     value !== 0 && !isGiven && value !== solutionValue;
-  const fontWeight = isSameNumber
-    ? "font-black"
-    : isGiven
-      ? "font-semibold"
-      : "font-normal";
-  const textColor = isGiven && !isMistake
-    ? "text-zinc-900"
-    : isMistake
-      ? "text-red-500"
-      : "text-blue-600";
+  const baseTextColor = isGiven ? "text-zinc-900" : "text-blue-600";
+  const fontWeight = sameNumber.text ?? (isGiven ? "font-semibold" : "font-normal");
+  const textColor =
+    sameNumber.textColor && sameNumber.textColor.startsWith("#")
+      ? ""
+      : isMistake
+        ? "text-red-500"
+        : sameNumber.textColor ?? baseTextColor;
   const text = `${fontWeight} ${textColor}`;
-
-  const handleClick = () => {
-    onSelect(index);
-    if (onPlace && value !== 0 && !isGiven) {
-      onPlace(index, value);
-    }
-  };
+  const colorStyle = sameNumber.textColor?.startsWith("#") ? { color: sameNumber.textColor } : undefined;
 
   const noteGrid =
     notes.length > 0
@@ -75,16 +85,17 @@ export function Cell({
   return (
     <button
       type="button"
-      onClick={handleClick}
+      data-cell-index={index}
       aria-label={`Row ${row + 1}, column ${col + 1}`}
-      className={`flex aspect-square select-none items-center justify-center text-xl leading-none ${right} ${bottom} ${fill} ${text}`}
+      className={`flex aspect-square select-none items-center justify-center text-xl leading-none ${right} ${bottom} ${fill} ${selectionMarker} ${text}`}
+      style={{ ...bgStyle, ...colorStyle }}
     >
       {value !== 0 ? (
         <span>{value}</span>
       ) : noteItems.length > 0 ? (
         <span className={noteGrid}>
           {noteItems.map((n) => (
-            <span key={n} className={isSameNoteNumber && n === selectedValue ? "font-black" : ""}>{n}</span>
+            <span key={n} className={sameNumber.noteEmphasis && n === selectedValue ? sameNumber.noteEmphasis : ""}>{n}</span>
           ))}
         </span>
       ) : null}

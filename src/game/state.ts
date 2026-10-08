@@ -9,6 +9,8 @@ export interface GameState {
   board: number[];
   notes: number[][];
   selected: number | null;
+  selectedCells: number[];
+  cellSelectionMode: boolean;
   notesMode: boolean;
   elapsedMs: number;
   startTime: number | undefined;
@@ -26,6 +28,8 @@ export function createInitialState(): GameState {
     board: Array(CELLS).fill(0),
     notes: Array.from({ length: CELLS }, () => []),
     selected: null,
+    selectedCells: [],
+    cellSelectionMode: false,
     notesMode: false,
     elapsedMs: 0,
     startTime: undefined,
