@@ -12,16 +12,20 @@ The unit tests pass (`getDisabledNumbers` returns the correct Set of disabled nu
 5. Type the number on the keyboard: should be silently ignored
 
 **Acceptance criteria:**
-- [ ] All 9 instances of a number are placed on the board
-- [ ] The corresponding NumberPad button shows visual feedback (opacity-40, cursor-not-allowed)
-- [ ] Clicking the disabled button does nothing (no placement)
-- [ ] Keyboard input for disabled number is silently ignored (no placement, no error)
-- [ ] Notes mode is unaffected (can still add/remove notes for other numbers)
+- [x] All 9 instances of a number are placed on the board
+- [x] The corresponding NumberPad button shows visual feedback (opacity-40, cursor-not-allowed)
+- [x] Clicking the disabled button does nothing (no placement)
+- [x] Keyboard input for disabled number is silently ignored (no placement, no error)
+- [x] Notes mode is unaffected (can still add/remove notes for other numbers)
 
 **Implementation notes:**
 - `getDisabledNumbers(state)` counts each number 1–9 on the board (including givens) and returns a Set of numbers whose count reaches 9
 - `NumberPad` receives a `disabledNumbers` prop: disabled buttons render with `opacity-40` and `cursor-not-allowed`
 - `place()` and `toggleNote()` ignore keys 1–9 when the number is in `disabledNumbers`
 
+## Status: done
+
 ## Comments
+
+- 2026-10-08: UI verified. Filled 9 instances of number 5 on a new game (3 given + 6 placed). NumberPad button 5 renders as `opacity-40, cursor-not-allowed` with `disabled` HTML attribute. Clicking disabled button is blocked by the browser. Typing 5 on empty cells is silently ignored — R2C4 remains empty. Notes mode guard (`toggleNote` checks `disabled.has(value)`) only blocks disabled numbers, leaving 1-4, 6-9 fully functional.
 
