@@ -189,22 +189,30 @@ describe("addSelectedCells (a fresh batch prunes a pre-selected filled cell)", (
     expect(next.cellSelectionMode).toBe(false);
   });
 
-  it("keeps growing across subsequent sweeps, with the mode on at two cells", () => {
+  it("a sweep from normal mode starts fresh, not extending a previous sweep's result", () => {
     const state = withNumber(emptyBoard(), 40, 7);
     const tapped = select(state, 40);
     const afterFirst = addSelectedCells(tapped, [10]);
     const next = addSelectedCells(afterFirst, [20]);
-    expect(next.selectedCells).toEqual([10, 20]);
+    expect(next.selectedCells).toEqual([20]);
     expect(next.selected).toBe(20);
-    expect(next.cellSelectionMode).toBe(true);
+    expect(next.cellSelectionMode).toBe(false);
     expect(next.selectedCells).not.toContain(40);
   });
 
-  it("keeps the pre-selected cell when it is incompleted", () => {
+  it("a fresh batch from normal mode discards the pre-selected incompleted cell", () => {
     const tapped = select(emptyBoard(), 10);
     const next = addSelectedCells(tapped, [20]);
-    expect(next.selectedCells).toEqual([10, 20]);
+    expect(next.selectedCells).toEqual([20]);
     expect(next.selected).toBe(20);
+    expect(next.cellSelectionMode).toBe(false);
+  });
+
+  it("discards a normal-mode pre-selection and starts fresh with multiple cells", () => {
+    const tapped = select(emptyBoard(), 10);
+    const next = addSelectedCells(tapped, [20, 30]);
+    expect(next.selectedCells).toEqual([20, 30]);
+    expect(next.selected).toBe(30);
     expect(next.cellSelectionMode).toBe(true);
   });
 
@@ -759,11 +767,11 @@ describe("invariants across selection actions", () => {
     let state = emptyBoard();
     state = addSelectedCells(state, [10]);
     expect(state.cellSelectionMode).toBe(false); // a fresh single tap
-    state = addSelectedCells(state, [20]);
-    expect(state.cellSelectionMode).toBe(true); // on from two cells
-    state = toggleSelectedCell(state, 20);
+    state = addSelectedCells(state, [20, 30]);
+    expect(state.cellSelectionMode).toBe(true); // on from two cells (single sweep)
+    state = toggleSelectedCell(state, 30);
     expect(state.cellSelectionMode).toBe(true); // trimming to one keeps the mode
-    state = toggleSelectedCell(state, 10);
+    state = toggleSelectedCell(state, 20);
     expect(state.cellSelectionMode).toBe(false); // off at zero
   });
 });
