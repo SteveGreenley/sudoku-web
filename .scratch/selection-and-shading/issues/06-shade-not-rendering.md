@@ -4,6 +4,8 @@
 
 The unit tests pass (palette colors are correctly returned by `sameNumberStyle`). The UI does render the shade via inline styles (verified: `background: rgb(221, 214, 254); color: rgb(76, 29, 149);`), but the hex values from the palette were also being appended as noise to the className string — they are not valid Tailwind classes and served no purpose.
 
+**Status:** done
+
 **Steps to reproduce:**
 1. Start a new game (Easy)
 2. Click on a cell with value "9" (e.g., cell 4, Row 1, column 5)
