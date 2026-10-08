@@ -98,6 +98,8 @@ export function place(state: GameState, cell: number, value: number): GameState 
 export function toggleNote(state: GameState, cell: number, value: number): GameState {
   if (!validCell(cell) || !validValue(value)) return state;
   if (state.givens[cell] || state.board[cell] !== 0) return state;
+  const disabled = getDisabledNumbers(state);
+  if (disabled.has(value)) return state;
   const next = copy(startGameTimer(state));
   toggleNoteOnCell(next, cell, value);
   return next;
