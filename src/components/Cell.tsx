@@ -53,7 +53,10 @@ export function Cell({
       : isHighlighted
         ? "bg-blue-100"
         : "bg-white hover:bg-zinc-100";
-  const fill = sameNumber.background ?? baseFill;
+  const fill =
+    sameNumber.background && sameNumber.background.startsWith("#")
+      ? ""
+      : sameNumber.background ?? baseFill;
   const bgStyle = sameNumber.background?.startsWith("#") ? { background: sameNumber.background } : undefined;
   const selectionMarker =
     inSelectionMode && isInSelection
@@ -64,7 +67,12 @@ export function Cell({
     value !== 0 && !isGiven && value !== solutionValue;
   const baseTextColor = isGiven ? "text-zinc-900" : "text-blue-600";
   const fontWeight = sameNumber.text ?? (isGiven ? "font-semibold" : "font-normal");
-  const textColor = isMistake ? "text-red-500" : sameNumber.textColor ?? baseTextColor;
+  const textColor =
+    sameNumber.textColor && sameNumber.textColor.startsWith("#")
+      ? ""
+      : isMistake
+        ? "text-red-500"
+        : sameNumber.textColor ?? baseTextColor;
   const text = `${fontWeight} ${textColor}`;
   const colorStyle = sameNumber.textColor?.startsWith("#") ? { color: sameNumber.textColor } : undefined;
 
