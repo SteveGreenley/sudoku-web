@@ -54,6 +54,7 @@ export function Cell({
         ? "bg-blue-100"
         : "bg-white hover:bg-zinc-100";
   const fill = sameNumber.background ?? baseFill;
+  const bgStyle = sameNumber.background?.startsWith("#") ? { background: sameNumber.background } : undefined;
   const selectionMarker =
     inSelectionMode && isInSelection
       ? "outline-2 outline-dashed outline-blue-500 -outline-offset-2"
@@ -65,6 +66,7 @@ export function Cell({
   const fontWeight = sameNumber.text ?? (isGiven ? "font-semibold" : "font-normal");
   const textColor = isMistake ? "text-red-500" : sameNumber.textColor ?? baseTextColor;
   const text = `${fontWeight} ${textColor}`;
+  const colorStyle = sameNumber.textColor?.startsWith("#") ? { color: sameNumber.textColor } : undefined;
 
   const noteGrid =
     notes.length > 0
@@ -78,6 +80,7 @@ export function Cell({
       data-cell-index={index}
       aria-label={`Row ${row + 1}, column ${col + 1}`}
       className={`flex aspect-square select-none items-center justify-center text-xl leading-none ${right} ${bottom} ${fill} ${selectionMarker} ${text}`}
+      style={{ ...bgStyle, ...colorStyle }}
     >
       {value !== 0 ? (
         <span>{value}</span>

@@ -10,8 +10,10 @@
 - [x] `NumberPad` receives a `disabledNumbers` prop and buttons for numbers in that set do not fire any action when clicked
 - [x] Disabled buttons render with `opacity-40` and `cursor-not-allowed`, keeping the same shape and color as enabled buttons
 - [x] Keyboard input (keys 1–9) for a complete number is silently ignored in `place()` — no placement, no visual feedback
+- [x] Keyboard input (keys 1–9) for a complete number is silently ignored in `toggleNote()` when notes mode is on
 - [x] All acceptance criteria verified end-to-end (disabled state works via mouse, keyboard, and notes mode remains unaffected)
 
 ## Comments
 
-- 2026-10-06: Implemented. `getDisabledNumbers(state)` in `highlights.ts` counts each number 1–9 on the board (including givens) and returns a Set of numbers whose count reaches 9. `NumberPad` receives a `disabledNumbers` prop: disabled buttons render with `opacity-40` and `cursor-not-allowed`, and clicks fire no action. `place()` and `toggleNote()` ignore keys 1–9 when the number is in `disabledNumbers`. Notes mode unaffected. Tests pass.
+- 2026-10-06: Implemented. `getDisabledNumbers(state)` in `highlights.ts` counts each number 1–9 on the board (including givens) and returns a Set of numbers whose count reaches 9. `NumberPad` receives a `disabledNumbers` prop: disabled buttons render with `opacity-40` and `cursor-not-allowed`, and clicks fire no action. `place()` ignores keys 1–9 when the number is in `disabledNumbers`. Notes mode unaffected. Tests pass.
+- 2026-10-08: Added `toggleNote()` guard so keyboard input also respects disabled numbers (matching the NumberPad behavior). 6 new tests in `highlights.test.ts` covering `getDisabledNumbers`, `place` guard, and `toggleNote` guard. Full suite 146 passing, tsc + lint clean.

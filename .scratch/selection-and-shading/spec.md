@@ -1,6 +1,6 @@
 # Spec: Selection fixes and same-number shading
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 

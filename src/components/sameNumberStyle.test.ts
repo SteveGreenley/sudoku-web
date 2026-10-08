@@ -100,18 +100,18 @@ describe("sameNumberStyle (bold)", () => {
 describe("sameNumberStyle (shade)", () => {
   it("fills the selected same-number cell with the dark variant and dark text (value 5 = lime)", () => {
     expect(sameNumberStyle(5, true, true, false, "shade")).toEqual({
-      background: "bg-lime-300",
+      background: "#d9f99d",
       text: "font-black",
-      textColor: "text-lime-900",
+      textColor: "#3f6212",
       noteEmphasis: null,
     });
   });
 
   it("fills every other same-number instance (givens and placed alike) with the light variant and light text (value 5 = lime)", () => {
     expect(sameNumberStyle(5, false, true, false, "shade")).toEqual({
-      background: "bg-lime-100",
+      background: "#ecfccb",
       text: "font-black",
-      textColor: "text-lime-700",
+      textColor: "#4d7c0f",
       noteEmphasis: null,
     });
   });
@@ -119,8 +119,8 @@ describe("sameNumberStyle (shade)", () => {
   it("applies a different palette color per value (per-value shade, ticket 05)", () => {
     const selected = sameNumberStyle(1, true, true, false, "shade");
     const selectedNine = sameNumberStyle(9, true, true, false, "shade");
-    expect(selected.background).toBe("bg-rose-300");
-    expect(selectedNine.background).toBe("bg-violet-300");
+    expect(selected.background).toBe("#fecdd3");
+    expect(selectedNine.background).toBe("#ddd6fe");
     expect(selected.background).not.toBe(selectedNine.background);
   });
 
@@ -128,9 +128,9 @@ describe("sameNumberStyle (shade)", () => {
     const light1 = sameNumberStyle(1, false, true, false, "shade");
     const light4 = sameNumberStyle(4, false, true, false, "shade");
     const light9 = sameNumberStyle(9, false, true, false, "shade");
-    expect(light1.background).toBe("bg-rose-100");
-    expect(light4.background).toBe("bg-yellow-100");
-    expect(light9.background).toBe("bg-violet-100");
+    expect(light1.background).toBe("#fdf2f8");
+    expect(light4.background).toBe("#fef9c3");
+    expect(light9.background).toBe("#ede9fe");
   });
 
   it("every palette entry 1–9 provides distinct dark and light background colors", () => {
