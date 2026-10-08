@@ -1,6 +1,6 @@
 # Spec: Multi-cell note selection (drag gesture)
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 
