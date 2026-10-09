@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLayout } from "@/hooks/useLayout";
 import { Board } from "@/components/Board";
 import { Controls } from "@/components/Controls";
@@ -59,19 +59,20 @@ export default function Page() {
 
   const MIN_BOARD_WIDTH = 200;
 
-  const landscapeBoardWidth = isLandscape && viewportWidth > 0 && viewportHeight > 0
-    ? Math.min(
-        viewportHeight - 160,
-        (viewportWidth - 48) / 2,
-        432,
-      )
-    : undefined;
-
-  const landscapeButtonSize = landscapeBoardWidth
-    ? (landscapeBoardWidth - 16) / 3
-    : undefined;
-
-  const shouldShowLandscape = landscapeBoardWidth !== undefined && landscapeBoardWidth >= MIN_BOARD_WIDTH;
+  const { landscapeBoardWidth, landscapeButtonSize, shouldShowLandscape } = useMemo(() => {
+    const lbw = isLandscape && viewportWidth > 0 && viewportHeight > 0
+      ? Math.min(
+          viewportHeight - 160,
+          (viewportWidth - 48) / 2,
+          432,
+        )
+      : undefined;
+    return {
+      landscapeBoardWidth: lbw,
+      landscapeButtonSize: lbw ? (lbw - 16) / 3 : undefined,
+      shouldShowLandscape: lbw !== undefined && lbw >= MIN_BOARD_WIDTH,
+    };
+  }, [isLandscape, viewportWidth, viewportHeight]);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   // On mount: resume the saved game, or start a fresh one. Every game-starting
