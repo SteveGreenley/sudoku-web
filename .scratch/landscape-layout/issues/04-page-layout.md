@@ -4,15 +4,36 @@
 
 **Blocked by:** 01 (layout hook), 02 (Controls), 03 (NumberPad)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] When `isLandscape` is false: renders the exact existing vertical stack (Header → Controls → Board → NumberPad with Erase), pixel-for-pixel unchanged
-- [ ] When `isLandscape` is true: renders full-width header + a horizontal row containing:
+- [x] When `isLandscape` is false: renders the exact existing vertical stack (Header → Controls → Board → NumberPad with Erase), pixel-for-pixel unchanged
+- [x] When `isLandscape` is true: renders full-width header + a horizontal row containing:
   - Left column: the board (sized to fill available height, square)
   - Right panel: a vertical flex column with the top button row (4 buttons including Erase) above the 3×3 number grid
-- [ ] The board grows in landscape to fill available height (viewport height minus header and padding), capped at 432px
-- [ ] The board width is constrained so that `boardWidth + interPanelGap + panelWidth <= viewportWidth` (both fit horizontally)
-- [ ] The right panel width approximately equals the board width (panel ≈ board width, buttons ≈ board width / 3)
-- [ ] Layout switches seamlessly on viewport resize (no flash of the wrong layout on desktop)
-- [ ] A brief portrait flash on landscape phone mount is acceptable (SSR renders portrait, hook measures after mount)
-- [ ] The Solved overlay and New Game dialog remain full-screen and centered, unchanged
+- [x] The board grows in landscape to fill available height (viewport height minus header and padding), capped at 432px
+- [x] The board width is constrained so that `boardWidth + interPanelGap + panelWidth <= viewportWidth` (both fit horizontally)
+- [x] The right panel width approximately equals the board width (panel ≈ board width, buttons ≈ board width / 3)
+- [x] Layout switches seamlessly on viewport resize (no flash of the wrong layout on desktop)
+- [x] A brief portrait flash on landscape phone mount is acceptable (SSR renders portrait, hook measures after mount)
+- [x] The Solved overlay and New Game dialog remain full-screen and centered, unchanged
+
+## Answer
+
+**Commit:** `f50061c`
+
+### Board.tsx
+Added `width?: number` prop. When provided, uses inline style to set both `width` and `height` to the same value, forcing the board to be a square of that size. This overrides the CSS `w-[min(90vw,432px)]` when the landscape layout needs a custom width.
+
+### page.tsx
+- **Import**: `useLayout` from `@/hooks/useLayout`
+- **Computation**: `landscapeBoardWidth` computed from viewport dimensions:
+  - Height-constrained: `viewportHeight - 160` (viewport minus 80px padding, 56px header, 24px gap)
+  - Width-constrained: `(viewportWidth - 48) / 2` (half of viewport minus 32px px-4 and 16px panel gap)
+  - Capped at 432px, falls back to portrait if < 200px (too narrow)
+- **Button sizing**: `landscapeButtonSize = (landscapeBoardWidth - 16) / 3` (16 = 2 gaps of 8px in 3 columns)
+- **Rendering**: When `shouldShowLandscape` is true, renders a horizontal row:
+  - **Left**: Board with `width={landscapeBoardWidth}` (square, height-constrained)
+  - **Right**: Vertical flex column with Controls (includes `onErase` from ticket 02) + NumberPad (`layout="landscape"`, `buttonSize` from ticket 03)
+- **Portrait fallback**: Header → Controls (no Erase in row) → Board (no width prop) → NumberPad (`layout="portrait"`). Pixel-identical to the previous single-column layout.
+
+The layout switches on every viewport resize (handled by the `useLayout` hook's resize listener). On landscape phones, SSR renders portrait (no width known), then the hook measures on mount and switches to landscape — this brief portrait flash is acceptable per the spec.
