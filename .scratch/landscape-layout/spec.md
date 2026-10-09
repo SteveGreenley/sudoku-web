@@ -1,6 +1,6 @@
 # Spec: Landscape Layout
 
-Status: 5/5 tickets resolved
+Status: 6/6 tickets resolved
 
 ## Problem Statement
 
@@ -87,4 +87,4 @@ The spec-trigger is a client-side hook observing `window.innerWidth > window.inn
   - 03 (NumberPad 3x3): `cec5bc8` (portrait fixed 48px, landscape 72px fixed)
   - 04 (page layout): `f50061c`
   - 04 perf (useMemo): `5e73844`
-  - 06 (fix sizing + gaps): (pending)
+  - 06 (fix sizing + gaps): (this commit)

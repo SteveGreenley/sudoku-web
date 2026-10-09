@@ -29,6 +29,9 @@ export function NumberPad({
       width: `${buttonSize}px`,
       aspectRatio: "1",
     } : undefined;
+    const containerClasses = layout === 'landscape'
+      ? ""
+      : "h-12 w-12";
     return (
       <button
         key={num}
@@ -43,7 +46,7 @@ export function NumberPad({
           }
         }}
         aria-label={`Place number ${num}`}
-        className={classes}
+        className={`${classes} ${containerClasses}`}
         style={style}
       >
         {num}

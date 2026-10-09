@@ -59,7 +59,7 @@ export default function Page() {
 
   const MIN_BOARD_WIDTH = 200;
 
-  const { landscapeBoardWidth, landscapeButtonSize, shouldShowLandscape } = useMemo(() => {
+  const { landscapeBoardWidth, shouldShowLandscape } = useMemo(() => {
     const lbw = isLandscape && viewportWidth > 0 && viewportHeight > 0
       ? Math.min(
           viewportHeight - 160,
@@ -69,7 +69,6 @@ export default function Page() {
       : undefined;
     return {
       landscapeBoardWidth: lbw,
-      landscapeButtonSize: lbw ? (lbw - 16) / 3 : undefined,
       shouldShowLandscape: lbw !== undefined && lbw >= MIN_BOARD_WIDTH,
     };
   }, [isLandscape, viewportWidth, viewportHeight]);
@@ -301,7 +300,7 @@ export default function Page() {
     >
       <Header state={state} />
       {shouldShowLandscape ? (
-        <div className="flex justify-center px-4">
+        <div className="flex justify-center gap-4 px-4">
           <div className="flex-shrink-0">
             <Board
               state={state}
@@ -333,7 +332,7 @@ export default function Page() {
             />
             <NumberPad
               layout="landscape"
-              buttonSize={landscapeButtonSize}
+              buttonSize={72}
               notesMode={effectiveNotesMode(state)}
               onPlace={padOnPlace}
               onToggleNote={padOnToggleNote}
