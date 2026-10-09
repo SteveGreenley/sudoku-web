@@ -19,14 +19,14 @@
 
 ## Answer
 
-**Commit:** `f50061c`
+**Commits:** `f50061c` (layout), `5e73844` (perf optimization)
 
 ### Board.tsx
 Added `width?: number` prop. When provided, uses inline style to set both `width` and `height` to the same value, forcing the board to be a square of that size. This overrides the CSS `w-[min(90vw,432px)]` when the landscape layout needs a custom width.
 
 ### page.tsx
 - **Import**: `useLayout` from `@/hooks/useLayout`
-- **Computation**: `landscapeBoardWidth` computed from viewport dimensions:
+- **Computation** (wrapped in `useMemo`): `landscapeBoardWidth` computed from viewport dimensions:
   - Height-constrained: `viewportHeight - 160` (viewport minus 80px padding, 56px header, 24px gap)
   - Width-constrained: `(viewportWidth - 48) / 2` (half of viewport minus 32px px-4 and 16px panel gap)
   - Capped at 432px, falls back to portrait if < 200px (too narrow)
@@ -37,3 +37,5 @@ Added `width?: number` prop. When provided, uses inline style to set both `width
 - **Portrait fallback**: Header → Controls (no Erase in row) → Board (no width prop) → NumberPad (`layout="portrait"`). Pixel-identical to the previous single-column layout.
 
 The layout switches on every viewport resize (handled by the `useLayout` hook's resize listener). On landscape phones, SSR renders portrait (no width known), then the hook measures on mount and switches to landscape — this brief portrait flash is acceptable per the spec.
+
+The computation is wrapped in `useMemo` (perf commit) to avoid recomputing on every game-state render (timer, placement, etc.) — only recomputes when `isLandscape`, `viewportWidth`, or `viewportHeight` change.
