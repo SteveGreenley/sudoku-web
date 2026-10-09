@@ -1,6 +1,6 @@
 # Spec: Landscape Layout
 
-Status: ready-for-agent
+Status: 4/5 tickets resolved (verification pending)
 
 ## Problem Statement
 
@@ -80,3 +80,10 @@ The spec-trigger is a client-side hook observing `window.innerWidth > window.inn
 - The repo convention is `.scratch/<feature-slug>/spec.md` and a `Status:` line near the top. The `ready-for-agent` triage label applies (see `docs/agents/triage-labels.md`).
 
 - The existing 164 unit tests in `game/index.test.ts`, `game/selection.test.ts`, `game/highlights.test.ts`, and `components/sameNumberStyle.test.ts` should pass without modification — no game-logic is touched.
+
+- Implementation commits:
+  - 01 (layout hook): `fdf22e1`
+  - 02 (Controls onErase): `7c776c5`
+  - 03 (NumberPad 3x3): `cec5bc8`
+  - 04 (page layout): `f50061c`
+  - 04 perf (useMemo): `5e73844`
