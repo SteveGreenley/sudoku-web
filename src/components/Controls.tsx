@@ -27,6 +27,7 @@ export interface ControlsProps {
   onToggleNotesMode: () => void;
   onUndo: () => void;
   onNewGame: () => void;
+  onErase?: () => void;
   historyLength: number;
 }
 
@@ -35,6 +36,7 @@ export function Controls({
   onToggleNotesMode,
   onUndo,
   onNewGame,
+  onErase,
   historyLength,
 }: ControlsProps) {
   const isDisabled = historyLength === 0;
@@ -60,6 +62,16 @@ export function Controls({
       >
         New Game
       </button>
+      {onErase && (
+        <button
+          type="button"
+          onClick={onErase}
+          className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-600 shadow-sm transition-colors hover:bg-zinc-100"
+          aria-label="Erase"
+        >
+          ⌫
+        </button>
+      )}
     </div>
   );
 }
