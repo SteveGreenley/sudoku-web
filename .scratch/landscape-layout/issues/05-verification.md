@@ -30,7 +30,7 @@ Key landscape observations:
 - Top button row contains 4 buttons: Notes, Undo, New Game, **Erase (⌫)**
 - Number pad in landscape mode renders 9 numbers in a 3×3 grid (no Erase button — it moved to the top row)
 - Board on the left is square and sized to fill available height (capped at 432px)
-- Number pad buttons sized to ≈ board width / 3
+- Number pad buttons sized to ≈ board width / 3 (known issue — ticket 06 will fix to ~72px)
 
 ### Standard checks
 

@@ -19,8 +19,8 @@
 
 `src/components/NumberPad.tsx` accepts `layout: 'portrait' | 'landscape'` and optional `buttonSize: number`.
 
-**Portrait mode:** renders exactly as before — 9 numbers + Erase button in a horizontal row, fixed 48px buttons.
+**Portrait mode:** renders 9 numbers + Erase button in a horizontal row. NOTE: portrait buttons currently stretch to fill container (lost explicit 48px sizing, fixed by ticket 06).
 
-**Landscape mode:** renders 9 numbers in a 3×3 CSS grid (no Erase button — that's handled by the top row from ticket 02). Each button gets an inline `width` + `aspectRatio: 1` to stay square. Disabled-state styling (opacity) is identical to portrait.
+**Landscape mode:** renders 9 numbers in a 3×3 CSS grid (no Erase button — that's handled by the top row from ticket 02). Each button gets an inline `width` + `aspectRatio: 1`. NOTE: buttons are currently sized from board width (board/3 ≈ 139px), which is too large — ticket 06 fixes to ~72px fixed.
 
 `src/app/page.tsx` updated to pass `layout="portrait"` to the existing NumberPad usage — no behavior change for portrait.

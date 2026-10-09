@@ -8,7 +8,7 @@ On a wide screen (phone rotated landscape, or any viewport whose width exceeds i
 
 ## Solution
 
-When the viewport width exceeds its height, the app switches to a side-by-side layout: the board stays on the left, and a right panel occupies the remaining horizontal space. The right panel has two zones — a top button row (Notes toggle, Undo, New Game, Erase) and below it a 3×3 number grid whose buttons are sized to match the board height (each button ≈ ⅓ of the board side). The board grows to fill available vertical space (capped so board + panel always fit the width).
+When the viewport width exceeds its height, the app switches to a side-by-side layout: the board stays on the left, and a right panel occupies the remaining horizontal space. The right panel has two zones — a top button row (Notes toggle, Undo, New Game, Erase) and below it a 3×3 number grid whose buttons are fixed 72px (48px × 1.5, ~50% bigger than the 48px portrait buttons). The board grows to fill available vertical space (capped so board + panel always fit the width).
 
 The spec-trigger is a client-side hook observing `window.innerWidth > window.innerHeight` — a live viewport aspect, not the CSS `orientation` media query. A square window (width == height) remains portrait.
 
@@ -18,7 +18,7 @@ The spec-trigger is a client-side hook observing `window.innerWidth > window.inn
 2. As a player on a wide desktop monitor, I want the number pad beside the board (not below it) so that the game fills the screen more usefully.
 3. As a player, I want the board to grow in landscape (constrained by available height) so that the numbers on the grid are easier to read.
 4. As a player, I want the number pad arranged as a 3×3 grid in landscape so that each button is large and easy to tap.
-5. As a player, I want the number pad buttons in landscape to be sized so that each one occupies roughly one-third of the board side, so the right panel visually balances the board.
+5. As a player, I want the number pad buttons in landscape to be about 50% bigger than portrait (fixed 72px), so the right panel balances the board without being excessive.
 6. As a player, I want the Erase button to move into a top button row (alongside Notes, Undo, New Game) in landscape, so that the 3×3 number grid contains only 1–9 and the row of utility buttons is easy to reach.
 7. As a player, I want the top button row to appear above the 3×3 number grid in landscape, so that utility buttons (notes toggle, undo, new game, erase) are grouped at the top of the right panel.
 8. As a player, I want the header (title, difficulty, timer) to remain full-width across the top in landscape, so that game info is always at the top of the screen regardless of layout.
@@ -40,13 +40,13 @@ The spec-trigger is a client-side hook observing `window.innerWidth > window.inn
     - **Left column**: `<Header />` (full-width top bar, outside the row) → `<Board />` (sized to fill available height, capped by width so board + panel fit).
     - **Right panel**: a vertical flex column of width approximately equal to the board width, containing:
       - **Top button row**: `<Controls />` (Notes, Undo, New Game) plus the **Erase** button appended at the end. This replaces the current `<Controls />` (which has no Erase) with an extended variant.
-      - **Number grid**: `<NumberPad />` rendered as a 3×3 grid (9 buttons, no Erase). Each button is sized so that three buttons + gaps ≈ the board width (button width ≈ board width / 3 − gaps / 3).
+      - **Number grid**: `<NumberPad />` rendered as a 3×3 grid (9 buttons, no Erase). Each landscape button is fixed 72px (48px × 1.5, ~50% bigger than portrait).
 
 - **Board sizing in landscape**: the board height is computed as `availableHeight - headerHeight - gap` (where `availableHeight` is the viewport height minus outer padding), capped at 432px in portrait, but in landscape the cap is raised so the board fills the vertical space. The board width is `availableHeight` (it stays square), then the board width is further constrained so `boardWidth + interPanelGap + panelWidth <= viewportWidth`. The board is always `width: height` (aspect-square) as it currently is.
 
 - **NumberPad component**: receives a layout prop (`'portrait' | 'landscape'`) that changes its rendering:
-  - `portrait`: current behavior — horizontal row of 9 numbers + Erase button, container width `min(90vw, 432px)`.
-  - `landscape`: grid rendering — 3×3 layout (just 9 buttons, no Erase), button size computed from a `buttonSize` prop (≈ board width / 3).
+  - `portrait`: current behavior — horizontal row of 9 numbers + Erase button, buttons `h-12 w-12` (48×48px), container width `min(90vw, 432px)`.
+  - `landscape`: grid rendering — 3×3 layout (just 9 buttons, no Erase), each button fixed 72px.
 
 - **Controls component**: extended to accept an optional `onErase` prop (in landscape) so it can render the Erase button in the top row. The Notes toggle behavior is unchanged.
 
@@ -84,6 +84,7 @@ The spec-trigger is a client-side hook observing `window.innerWidth > window.inn
 - Implementation commits:
   - 01 (layout hook): `fdf22e1`
   - 02 (Controls onErase): `7c776c5`
-  - 03 (NumberPad 3x3): `cec5bc8`
+  - 03 (NumberPad 3x3): `cec5bc8` (portrait fixed 48px, landscape 72px fixed)
   - 04 (page layout): `f50061c`
   - 04 perf (useMemo): `5e73844`
+  - 06 (fix sizing + gaps): (pending)

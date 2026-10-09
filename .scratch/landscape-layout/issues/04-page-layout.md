@@ -12,7 +12,7 @@
   - Right panel: a vertical flex column with the top button row (4 buttons including Erase) above the 3×3 number grid
 - [x] The board grows in landscape to fill available height (viewport height minus header and padding), capped at 432px
 - [x] The board width is constrained so that `boardWidth + interPanelGap + panelWidth <= viewportWidth` (both fit horizontally)
-- [x] The right panel width approximately equals the board width (panel ≈ board width, buttons ≈ board width / 3)
+- [x] The right panel width approximately equals the board width (panel ≈ board width, buttons fixed 72px per ticket 06)
 - [x] Layout switches seamlessly on viewport resize (no flash of the wrong layout on desktop)
 - [x] A brief portrait flash on landscape phone mount is acceptable (SSR renders portrait, hook measures after mount)
 - [x] The Solved overlay and New Game dialog remain full-screen and centered, unchanged
@@ -30,10 +30,10 @@ Added `width?: number` prop. When provided, uses inline style to set both `width
   - Height-constrained: `viewportHeight - 160` (viewport minus 80px padding, 56px header, 24px gap)
   - Width-constrained: `(viewportWidth - 48) / 2` (half of viewport minus 32px px-4 and 16px panel gap)
   - Capped at 432px, falls back to portrait if < 200px (too narrow)
-- **Button sizing**: `landscapeButtonSize = (landscapeBoardWidth - 16) / 3` (16 = 2 gaps of 8px in 3 columns)
+- **Button sizing**: landscape buttons are fixed 72px (48×1.5, ~50% bigger than portrait), not computed from board width (ticket 06).
 - **Rendering**: When `shouldShowLandscape` is true, renders a horizontal row:
   - **Left**: Board with `width={landscapeBoardWidth}` (square, height-constrained)
-  - **Right**: Vertical flex column with Controls (includes `onErase` from ticket 02) + NumberPad (`layout="landscape"`, `buttonSize` from ticket 03)
+  - **Right**: Vertical flex column with Controls (includes `onErase` from ticket 02) + NumberPad (`layout="landscape"`, button size fixed 72px, see ticket 06)
 - **Portrait fallback**: Header → Controls (no Erase in row) → Board (no width prop) → NumberPad (`layout="portrait"`). Pixel-identical to the previous single-column layout.
 
 The layout switches on every viewport resize (handled by the `useLayout` hook's resize listener). On landscape phones, SSR renders portrait (no width known), then the hook measures on mount and switches to landscape — this brief portrait flash is acceptable per the spec.
