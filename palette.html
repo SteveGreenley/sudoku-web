@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku Color Palette</title>
+<style>
+  body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 960px; margin: 0 auto; background: #f9fafb; }
+  h1 { text-align: center; margin-bottom: 1.5rem; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 0.5rem 0.75rem; font-weight: 600; border-bottom: 2px solid #d1d5db; }
+  td { padding: 0.5rem 0.75rem; text-align: center; font-size: 0.9rem; border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
+  .color-cell { min-width: 120px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; padding: 0.6rem 0.75rem; text-align: center; }
+  .dark { font-weight: 700; }
+  .light { font-weight: 400; }
+  .swatch { display: inline-block; width: 36px; height: 36px; border-radius: 50%; border: 1px solid #d1d5db; vertical-align: middle; margin-right: 0.5rem; }
+  tr:last-child td { border-bottom: none; }
+</style>
+</head>
+<body>
+<h1>Sudoku Same-Number Color Palette</h1>
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Color</th>
+      <th>Selected (dark) — background</th>
+      <th>Selected (dark) — text</th>
+      <th>Unselected (light) — background</th>
+      <th>Unselected (light) — text</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Rose</td>
+      <td class="color-cell" style="background:#fecdd3;color:#881337">
+        <span class="swatch" style="background:#fecdd3"></span>#fecdd3</td>
+      <td class="color-cell" style="background:#881337;color:#fecdd3">
+        <span class="swatch" style="background:#881337"></span>#881337</td>
+      <td class="color-cell" style="background:#fdf2f8;color:#9d174c">
+        <span class="swatch" style="background:#fdf2f8"></span>#fdf2f8</td>
+      <td class="color-cell" style="background:#9d174c;color:#fdf2f8">
+        <span class="swatch" style="background:#9d174c"></span>#9d174c</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Orange</td>
+      <td class="color-cell" style="background:#fed7aa;color:#431407">
+        <span class="swatch" style="background:#fed7aa"></span>#fed7aa</td>
+      <td class="color-cell" style="background:#431407;color:#fed7aa">
+        <span class="swatch" style="background:#431407"></span>#431407</td>
+      <td class="color-cell" style="background:#fff7ed;color:#9a3412">
+        <span class="swatch" style="background:#fff7ed"></span>#fff7ed</td>
+      <td class="color-cell" style="background:#9a3412;color:#fff7ed">
+        <span class="swatch" style="background:#9a3412"></span>#9a3412</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Amber</td>
+      <td class="color-cell" style="background:#fcd34d;color:#451a03">
+        <span class="swatch" style="background:#fcd34d"></span>#fcd34d</td>
+      <td class="color-cell" style="background:#451a03;color:#fcd34d">
+        <span class="swatch" style="background:#451a03"></span>#451a03</td>
+      <td class="color-cell" style="background:#fef3c7;color:#78350f">
+        <span class="swatch" style="background:#fef3c7"></span>#fef3c7</td>
+      <td class="color-cell" style="background:#78350f;color:#fef3c7">
+        <span class="swatch" style="background:#78350f"></span>#78350f</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Yellow</td>
+      <td class="color-cell" style="background:#fde047;color:#422006">
+        <span class="swatch" style="background:#fde047"></span>#fde047</td>
+      <td class="color-cell" style="background:#422006;color:#fde047">
+        <span class="swatch" style="background:#422006"></span>#422006</td>
+      <td class="color-cell" style="background:#fef9c3;color:#854d0e">
+        <span class="swatch" style="background:#fef9c3"></span>#fef9c3</td>
+      <td class="color-cell" style="background:#854d0e;color:#fef9c3">
+        <span class="swatch" style="background:#854d0e"></span>#854d0e</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>Lime</td>
+      <td class="color-cell" style="background:#d9f99d;color:#3f6212">
+        <span class="swatch" style="background:#d9f99d"></span>#d9f99d</td>
+      <td class="color-cell" style="background:#3f6212;color:#d9f99d">
+        <span class="swatch" style="background:#3f6212"></span>#3f6212</td>
+      <td class="color-cell" style="background:#ecfccb;color:#4d7c0f">
+        <span class="swatch" style="background:#ecfccb"></span>#ecfccb</td>
+      <td class="color-cell" style="background:#4d7c0f;color:#ecfccb">
+        <span class="swatch" style="background:#4d7c0f"></span>#4d7c0f</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Emerald</td>
+      <td class="color-cell" style="background:#a7f3d0;color:#064e3b">
+        <span class="swatch" style="background:#a7f3d0"></span>#a7f3d0</td>
+      <td class="color-cell" style="background:#064e3b;color:#a7f3d0">
+        <span class="swatch" style="background:#064e3b"></span>#064e3b</td>
+      <td class="color-cell" style="background:#d1fae5;color:#065f46">
+        <span class="swatch" style="background:#d1fae5"></span>#d1fae5</td>
+      <td class="color-cell" style="background:#065f46;color:#d1fae5">
+        <span class="swatch" style="background:#065f46"></span>#065f46</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Teal</td>
+      <td class="color-cell" style="background:#99e9d8;color:#042f2e">
+        <span class="swatch" style="background:#99e9d8"></span>#99e9d8</td>
+      <td class="color-cell" style="background:#042f2e;color:#99e9d8">
+        <span class="swatch" style="background:#042f2e"></span>#042f2e</td>
+      <td class="color-cell" style="background:#ccfbf1;color:#115e59">
+        <span class="swatch" style="background:#ccfbf1"></span>#ccfbf1</td>
+      <td class="color-cell" style="background:#115e59;color:#ccfbf1">
+        <span class="swatch" style="background:#115e59"></span>#115e59</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>Cyan</td>
+      <td class="color-cell" style="background:#a5f3fc;color:#164e63">
+        <span class="swatch" style="background:#a5f3fc"></span>#a5f3fc</td>
+      <td class="color-cell" style="background:#164e63;color:#a5f3fc">
+        <span class="swatch" style="background:#164e63"></span>#164e63</td>
+      <td class="color-cell" style="background:#cffafe;color:#155e75">
+        <span class="swatch" style="background:#cffafe"></span>#cffafe</td>
+      <td class="color-cell" style="background:#155e75;color:#cffafe">
+        <span class="swatch" style="background:#155e75"></span>#155e75</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>Violet</td>
+      <td class="color-cell" style="background:#ddd6fe;color:#4c1d95">
+        <span class="swatch" style="background:#ddd6fe"></span>#ddd6fe</td>
+      <td class="color-cell" style="background:#4c1d95;color:#ddd6fe">
+        <span class="swatch" style="background:#4c1d95"></span>#4c1d95</td>
+      <td class="color-cell" style="background:#ede9fe;color:#6b21a8">
+        <span class="swatch" style="background:#ede9fe"></span>#ede9fe</td>
+      <td class="color-cell" style="background:#6b21a8;color:#ede9fe">
+        <span class="swatch" style="background:#6b21a8"></span>#6b21a8</td>
+    </tr>
+  </tbody>
+</table>
+<p style="text-align:center;margin-top:1.5rem;color:#6b7280;font-size:0.85rem;">
+  Selected (dark) = cell containing selected number &nbsp;|&nbsp;
+  Unselected (light) = other instances of that number
+</p>
+</body>
+</html>

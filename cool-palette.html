@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Adjusted Palette</title>
+<style>
+  body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 960px; margin: 0 auto; background: #f9fafb; }
+  h1 { text-align: center; margin-bottom: 0.5rem; }
+  p.subtitle { text-align: center; color: #6b7280; margin-bottom: 1.5rem; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 0.5rem 0.75rem; font-weight: 600; border-bottom: 2px solid #d1d5db; font-size: 0.85rem; }
+  td { padding: 0.6rem 0.75rem; text-align: center; border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
+  .color-cell { min-width: 140px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; padding: 0.6rem 0.75rem; text-align: center; }
+  .swatch { display: inline-block; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #d1d5db; vertical-align: middle; margin-right: 0.4rem; }
+  tr:last-child td { border-bottom: none; }
+  .legend { margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: #6b7280; }
+</style>
+</head>
+<body>
+<h1>Adjusted Palette — Amber/Yellow & Emerald/Teal separated</h1>
+<p class="subtitle">
+  Amber shifted toward orange. Yellow stays pure. Emerald shifted to green. Teal shifted to blue-cyan.
+</p>
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Color</th>
+      <th>Selected (dark) — background</th>
+      <th>Selected (dark) — text</th>
+      <th>Unselected (light) — background</th>
+      <th>Unselected (light) — text</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Fuchsia</td>
+      <td class="color-cell" style="background:#f9a8d4;color:#831843">
+        <span class="swatch" style="background:#f9a8d4"></span>#f9a8d4</td>
+      <td class="color-cell" style="background:#831843;color:#f9a8d4">
+        <span class="swatch" style="background:#831843"></span>#831843</td>
+      <td class="color-cell" style="background:#fce7f3;color:#be185d">
+        <span class="swatch" style="background:#fce7f3"></span>#fce7f3</td>
+      <td class="color-cell" style="background:#db2777;color:#fce7f3">
+        <span class="swatch" style="background:#db2777"></span>#db2777</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Orange</td>
+      <td class="color-cell" style="background:#fed7aa;color:#431407">
+        <span class="swatch" style="background:#fed7aa"></span>#fed7aa</td>
+      <td class="color-cell" style="background:#431407;color:#fed7aa">
+        <span class="swatch" style="background:#431407"></span>#431407</td>
+      <td class="color-cell" style="background:#fff7ed;color:#9a3412">
+        <span class="swatch" style="background:#fff7ed"></span>#fff7ed</td>
+      <td class="color-cell" style="background:#ea580c;color:#fff7ed">
+        <span class="swatch" style="background:#ea580c"></span>#ea580c</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Amber (↗ orange)</td>
+      <td class="color-cell" style="background:#f59e0b;color:#78350f">
+        <span class="swatch" style="background:#f59e0b"></span>#f59e0b</td>
+      <td class="color-cell" style="background:#78350f;color:#f59e0b">
+        <span class="swatch" style="background:#78350f"></span>#78350f</td>
+      <td class="color-cell" style="background:#fef3c7;color:#d97706">
+        <span class="swatch" style="background:#fef3c7"></span>#fef3c7</td>
+      <td class="color-cell" style="background:#d97706;color:#fef3c7">
+        <span class="swatch" style="background:#d97706"></span>#d97706</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Yellow (pure)</td>
+      <td class="color-cell" style="background:#facc15;color:#422006">
+        <span class="swatch" style="background:#facc15"></span>#facc15</td>
+      <td class="color-cell" style="background:#422006;color:#facc15">
+        <span class="swatch" style="background:#422006"></span>#422006</td>
+      <td class="color-cell" style="background:#fef9c3;color:#854d0e">
+        <span class="swatch" style="background:#fef9c3"></span>#fef9c3</td>
+      <td class="color-cell" style="background:#ca8a04;color:#fef9c3">
+        <span class="swatch" style="background:#ca8a04"></span>#ca8a04</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>Lime</td>
+      <td class="color-cell" style="background:#d9f99d;color:#3f6212">
+        <span class="swatch" style="background:#d9f99d"></span>#d9f99d</td>
+      <td class="color-cell" style="background:#3f6212;color:#d9f99d">
+        <span class="swatch" style="background:#3f6212"></span>#3f6212</td>
+      <td class="color-cell" style="background:#ecfccb;color:#4d7c0f">
+        <span class="swatch" style="background:#ecfccb"></span>#ecfccb</td>
+      <td class="color-cell" style="background:#4d7c0f;color:#ecfccb">
+        <span class="swatch" style="background:#4d7c0f"></span>#4d7c0f</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Lime green</td>
+      <td class="color-cell" style="background:#84cc16;color:#36531d">
+        <span class="swatch" style="background:#84cc16"></span>#84cc16</td>
+      <td class="color-cell" style="background:#36531d;color:#84cc16">
+        <span class="swatch" style="background:#36531d"></span>#36531d</td>
+      <td class="color-cell" style="background:#f7fee7;color:#65a30d">
+        <span class="swatch" style="background:#f7fee7"></span>#f7fee7</td>
+      <td class="color-cell" style="background:#65a30d;color:#f7fee7">
+        <span class="swatch" style="background:#65a30d"></span>#65a30d</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Teal (↗ blue-cyan)</td>
+      <td class="color-cell" style="background:#2dd4bf;color:#115e59">
+        <span class="swatch" style="background:#2dd4bf"></span>#2dd4bf</td>
+      <td class="color-cell" style="background:#115e59;color:#2dd4bf">
+        <span class="swatch" style="background:#115e59"></span>#115e59</td>
+      <td class="color-cell" style="background:#ccfbf1;color:#0d9488">
+        <span class="swatch" style="background:#ccfbf1"></span>#ccfbf1</td>
+      <td class="color-cell" style="background:#0d9488;color:#ccfbf1">
+        <span class="swatch" style="background:#0d9488"></span>#0d9488</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>Cyan</td>
+      <td class="color-cell" style="background:#a5f3fc;color:#164e63">
+        <span class="swatch" style="background:#a5f3fc"></span>#a5f3fc</td>
+      <td class="color-cell" style="background:#164e63;color:#a5f3fc">
+        <span class="swatch" style="background:#164e63"></span>#164e63</td>
+      <td class="color-cell" style="background:#cffafe;color:#155e75">
+        <span class="swatch" style="background:#cffafe"></span>#cffafe</td>
+      <td class="color-cell" style="background:#0891b2;color:#cffafe">
+        <span class="swatch" style="background:#0891b2"></span>#0891b2</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>Indigo</td>
+      <td class="color-cell" style="background:#c7d2fe;color:#312e81">
+        <span class="swatch" style="background:#c7d2fe"></span>#c7d2fe</td>
+      <td class="color-cell" style="background:#312e81;color:#c7d2fe">
+        <span class="swatch" style="background:#312e81"></span>#312e81</td>
+      <td class="color-cell" style="background:#e0e7ff;color:#4338ca">
+        <span class="swatch" style="background:#e0e7ff"></span>#e0e7ff</td>
+      <td class="color-cell" style="background:#4f46e5;color:#e0e7ff">
+        <span class="swatch" style="background:#4f46e5"></span>#4f46e5</td>
+    </tr>
+  </tbody>
+</table>
+<p class="legend">
+  <span style="background:#f9a8d4;display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:middle;"></span>
+  Dark bg shown in swatches (selected). <span style="background:#3f6212;display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:middle;"></span>
+  Dark bg shown in text cells (selected text color).
+</p>
+</body>
+</html>

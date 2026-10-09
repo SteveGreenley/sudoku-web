@@ -119,8 +119,8 @@ describe("sameNumberStyle (shade)", () => {
   it("applies a different palette color per value (per-value shade, ticket 05)", () => {
     const selected = sameNumberStyle(1, true, true, false, "shade");
     const selectedNine = sameNumberStyle(9, true, true, false, "shade");
-    expect(selected.background).toBe("#fecdd3");
-    expect(selectedNine.background).toBe("#ddd6fe");
+    expect(selected.background).toBe("#f9a8d4");
+    expect(selectedNine.background).toBe("#c7d2fe");
     expect(selected.background).not.toBe(selectedNine.background);
   });
 
@@ -128,9 +128,9 @@ describe("sameNumberStyle (shade)", () => {
     const light1 = sameNumberStyle(1, false, true, false, "shade");
     const light4 = sameNumberStyle(4, false, true, false, "shade");
     const light9 = sameNumberStyle(9, false, true, false, "shade");
-    expect(light1.background).toBe("#fdf2f8");
+    expect(light1.background).toBe("#fce7f3");
     expect(light4.background).toBe("#fef9c3");
-    expect(light9.background).toBe("#ede9fe");
+    expect(light9.background).toBe("#e0e7ff");
   });
 
   it("every palette entry 1–9 provides distinct dark and light background colors", () => {
