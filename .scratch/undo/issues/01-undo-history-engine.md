@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] A `history` field (list of `{board, notes}` snapshots) on the game state, defaulting to empty; a new game starts with an empty history
 - [x] Each content change (place, single-cell note, erase, multi-cell note batch, multi-cell erase) records exactly one snapshot equal to the pre-change board+notes

@@ -4,7 +4,7 @@
 
 **Blocked by:** 02 (Undo button)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] Cmd/Ctrl+Z triggers one undo step (reverts the last board/notes change)
 - [x] It is a no-op when the history is empty (nothing to undo) and while the puzzle is solved

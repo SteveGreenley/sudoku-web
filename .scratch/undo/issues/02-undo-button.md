@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 (Undo history engine)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] Undo button renders in the controls row above the board, ordered Notes / Undo / New Game, styled to match the other two
 - [x] The button is disabled and greyed out (existing disabled-button styling) exactly when the history is empty, and enabled otherwise
