@@ -9,7 +9,7 @@ function formatElapsed(ms: number): string {
 
 export function Header({ state, width }: { state: GameState; width?: number }) {
   return (
-    <header className="flex items-baseline justify-between" style={width ? { width: `${width}px` } : undefined}>
+    <header className={`flex items-baseline justify-between ${width ? "" : "w-[min(90vw,432px)]"}`} style={width ? { width: `${width}px` } : undefined}>
       <h1 className="text-2xl font-bold tracking-tight">Sudoku</h1>
       <div className="flex items-baseline gap-4 text-sm">
         <span className="font-medium text-zinc-500">
