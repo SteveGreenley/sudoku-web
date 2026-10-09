@@ -5,6 +5,8 @@ interface NumberPadProps {
   onErase?: () => void;
   selectedCell: number | null;
   disabledNumbers?: Set<number>;
+  layout: 'portrait' | 'landscape';
+  buttonSize?: number;
 }
 
 export function NumberPad({
@@ -14,13 +16,19 @@ export function NumberPad({
   onErase,
   selectedCell,
   disabledNumbers = new Set(),
+  layout,
+  buttonSize,
 }: NumberPadProps) {
   const numberButtons = Array.from({ length: 9 }, (_, i) => i + 1).map((num) => {
     const isDisabled = disabledNumbers.has(num);
-    const baseClasses = "flex h-12 w-12 items-center justify-center rounded-md border text-xl font-medium shadow-sm transition-colors";
+    const baseClasses = "flex items-center justify-center rounded-md border text-xl font-medium shadow-sm transition-colors";
     const enabledClasses = "border-zinc-300 bg-white text-blue-600 hover:bg-zinc-100";
     const disabledClasses = "cursor-not-allowed border-zinc-200 bg-zinc-100 opacity-40";
     const classes = isDisabled ? `${baseClasses} ${disabledClasses}` : `${baseClasses} ${enabledClasses}`;
+    const style = layout === 'landscape' && buttonSize ? {
+      width: `${buttonSize}px`,
+      aspectRatio: "1",
+    } : undefined;
     return (
       <button
         key={num}
@@ -36,20 +44,26 @@ export function NumberPad({
         }}
         aria-label={`Place number ${num}`}
         className={classes}
+        style={style}
       >
         {num}
       </button>
     );
   });
 
+  const containerClasses = layout === 'landscape'
+    ? "grid grid-cols-3 gap-2"
+    : "flex w-[min(90vw,432px)] justify-center gap-2";
+  const isPortrait = layout === 'portrait';
+
   return (
     <div
-      className="flex w-[min(90vw,432px)] justify-center gap-2"
+      className={containerClasses}
       role="group"
       aria-label="Number pad"
     >
       {numberButtons}
-      {onErase && (
+      {isPortrait && onErase && (
         <button
           type="button"
           onClick={onErase}

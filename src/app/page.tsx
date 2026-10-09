@@ -306,6 +306,7 @@ export default function Page() {
         onGestureEnd={onGestureEnd}
       />
       <NumberPad
+        layout="portrait"
         notesMode={effectiveNotesMode(state)}
         onPlace={padOnPlace}
         onToggleNote={padOnToggleNote}
