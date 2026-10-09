@@ -11,6 +11,7 @@ interface BoardProps {
   onClearSelection: () => void;
   onGestureStart: () => void;
   onGestureEnd: () => void;
+  width?: number;
 }
 
 function cellIndexAt(x: number, y: number): number | null {
@@ -29,6 +30,7 @@ export function Board({
   onClearSelection,
   onGestureStart,
   onGestureEnd,
+  width,
 }: BoardProps) {
   const highlights = state.cellSelectionMode ? null : computeHighlights(state);
 
@@ -118,6 +120,7 @@ export function Board({
   return (
     <div
       className="grid w-[min(90vw,432px)] touch-none grid-cols-9 border-l-2 border-t-2 border-zinc-800 shadow-md"
+      style={width ? { width: `${width}px`, height: `${width}px` } : undefined}
       role="grid"
       aria-label="Sudoku board"
       onPointerDown={handlePointerDown}

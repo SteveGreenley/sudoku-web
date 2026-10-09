@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLayout } from "@/hooks/useLayout";
 import { Board } from "@/components/Board";
 import { Controls } from "@/components/Controls";
 
@@ -50,10 +51,27 @@ export default function Page() {
   const boardGestureRef = useRef(false);
   const [showNewGame, setShowNewGame] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const { isLandscape, viewportWidth, viewportHeight } = useLayout();
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { setIsClient(true); }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  const MIN_BOARD_WIDTH = 200;
+
+  const landscapeBoardWidth = isLandscape && viewportWidth > 0 && viewportHeight > 0
+    ? Math.min(
+        viewportHeight - 160,
+        (viewportWidth - 48) / 2,
+        432,
+      )
+    : undefined;
+
+  const landscapeButtonSize = landscapeBoardWidth
+    ? (landscapeBoardWidth - 16) / 3
+    : undefined;
+
+  const shouldShowLandscape = landscapeBoardWidth !== undefined && landscapeBoardWidth >= MIN_BOARD_WIDTH;
 
   /* eslint-disable react-hooks/set-state-in-effect */
   // On mount: resume the saved game, or start a fresh one. Every game-starting
@@ -281,39 +299,85 @@ export default function Page() {
       tabIndex={-1}
     >
       <Header state={state} />
-      <Controls
-        notesMode={effectiveNotesMode(state)}
-        onToggleNotesMode={() =>
-          setState((s) => {
-            if (!s.cellSelectionMode) {
-              return { ...s, notesMode: !s.notesMode };
+      {shouldShowLandscape ? (
+        <div className="flex justify-center px-4">
+          <div className="flex-shrink-0">
+            <Board
+              state={state}
+              onTapCell={onTapCell}
+              onAddSelected={onAddSelected}
+              onClearSelection={() => commit(clearSelection)}
+              onGestureStart={onGestureStart}
+              onGestureEnd={onGestureEnd}
+              width={landscapeBoardWidth}
+            />
+          </div>
+          <div className="flex flex-col items-center gap-4">
+            <Controls
+              notesMode={effectiveNotesMode(state)}
+              onToggleNotesMode={() =>
+                setState((s) => {
+                  if (!s.cellSelectionMode) {
+                    return { ...s, notesMode: !s.notesMode };
+                  }
+                  const next = clearSelection(s);
+                  if (isClient) saveState(next, localStoragePort);
+                  return next;
+                })
+              }
+              onUndo={() => commit(undo)}
+              onNewGame={handleNewGamePrompt}
+              onErase={onErase}
+              historyLength={state.history.length}
+            />
+            <NumberPad
+              layout="landscape"
+              buttonSize={landscapeButtonSize}
+              notesMode={effectiveNotesMode(state)}
+              onPlace={padOnPlace}
+              onToggleNote={padOnToggleNote}
+              selectedCell={state.selected}
+              disabledNumbers={getDisabledNumbers(state)}
+            />
+          </div>
+        </div>
+      ) : (
+        <>
+          <Controls
+            notesMode={effectiveNotesMode(state)}
+            onToggleNotesMode={() =>
+              setState((s) => {
+                if (!s.cellSelectionMode) {
+                  return { ...s, notesMode: !s.notesMode };
+                }
+                const next = clearSelection(s);
+                if (isClient) saveState(next, localStoragePort);
+                return next;
+              })
             }
-            const next = clearSelection(s);
-            if (isClient) saveState(next, localStoragePort);
-            return next;
-          })
-        }
-        onUndo={() => commit(undo)}
-        onNewGame={handleNewGamePrompt}
-        historyLength={state.history.length}
-      />
-      <Board
-        state={state}
-        onTapCell={onTapCell}
-        onAddSelected={onAddSelected}
-        onClearSelection={() => commit(clearSelection)}
-        onGestureStart={onGestureStart}
-        onGestureEnd={onGestureEnd}
-      />
-      <NumberPad
-        layout="portrait"
-        notesMode={effectiveNotesMode(state)}
-        onPlace={padOnPlace}
-        onToggleNote={padOnToggleNote}
-        onErase={onErase}
-        selectedCell={state.selected}
-        disabledNumbers={getDisabledNumbers(state)}
-      />
+            onUndo={() => commit(undo)}
+            onNewGame={handleNewGamePrompt}
+            historyLength={state.history.length}
+          />
+          <Board
+            state={state}
+            onTapCell={onTapCell}
+            onAddSelected={onAddSelected}
+            onClearSelection={() => commit(clearSelection)}
+            onGestureStart={onGestureStart}
+            onGestureEnd={onGestureEnd}
+          />
+          <NumberPad
+            layout="portrait"
+            notesMode={effectiveNotesMode(state)}
+            onPlace={padOnPlace}
+            onToggleNote={padOnToggleNote}
+            onErase={onErase}
+            selectedCell={state.selected}
+            disabledNumbers={getDisabledNumbers(state)}
+          />
+        </>
+      )}
       {state.status === "solved" && (
         <SolvedOverlay
           elapsedMs={state.elapsedMs}
