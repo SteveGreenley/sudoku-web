@@ -1,4 +1,4 @@
-import { NotebookPen, SquarePlay, Undo2, Eraser } from "lucide-react";
+import { NotebookPen, Play, Undo2, Eraser } from "lucide-react";
 
 interface NotesToggleProps {
   notesMode: boolean;
@@ -15,10 +15,10 @@ export function NotesToggle({ notesMode, onToggle }: NotesToggleProps) {
       className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
         notesMode
           ? "border-zinc-800 bg-zinc-800 text-white"
-          : "border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-100"
+          : "border-zinc-300 bg-white text-blue-600 hover:bg-zinc-100"
       }`}
     >
-      <NotebookPen size={16} strokeWidth={2} />
+      <NotebookPen size={20} strokeWidth={2} />
     </button>
   );
 }
@@ -53,11 +53,11 @@ export function Controls({
         className={`rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm font-medium shadow-sm transition-colors ${
           isDisabled
             ? "text-zinc-400 opacity-40 cursor-not-allowed"
-            : "text-zinc-600 hover:bg-zinc-100"
+            : "text-blue-600 hover:bg-zinc-100"
         }`}
         aria-label="Undo"
       >
-        <Undo2 size={16} strokeWidth={2} />
+            <Undo2 size={20} strokeWidth={2} />
       </button>
       <button
         type="button"
@@ -65,16 +65,16 @@ export function Controls({
         className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm font-medium text-zinc-600 shadow-sm transition-colors hover:bg-zinc-100"
         aria-label="New Game"
       >
-        <SquarePlay size={16} strokeWidth={2} />
+        <Play size={20} strokeWidth={2} />
       </button>
       {onErase && (
         <button
           type="button"
           onClick={onErase}
-          className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm font-medium text-zinc-600 shadow-sm transition-colors hover:bg-zinc-100"
+          className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm font-medium text-blue-600 shadow-sm transition-colors hover:bg-zinc-100"
           aria-label="Erase"
         >
-          <Eraser size={16} strokeWidth={2} />
+          <Eraser size={20} strokeWidth={2} />
         </button>
       )}
     </div>

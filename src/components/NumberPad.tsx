@@ -72,7 +72,7 @@ export function NumberPad({
         <button
           type="button"
           onClick={onErase}
-          className="flex h-12 w-12 items-center justify-center rounded-md border border-zinc-300 bg-white text-blue-600 shadow-sm transition-colors hover:bg-zinc-100"
+          className="flex h-12 w-12 items-center justify-center rounded-md border border-zinc-300 bg-white shadow-sm transition-colors text-blue-600 hover:bg-zinc-100"
           aria-label="Erase"
         >
           <Eraser size={20} strokeWidth={2} />
