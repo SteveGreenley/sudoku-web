@@ -33,6 +33,45 @@ function copy(state: GameState): GameState {
   };
 }
 
+function recordSnapshot(state: GameState): GameState {
+  return {
+    ...state,
+    history: [
+      ...state.history,
+      { board: [...state.board], notes: state.notes.map((n) => [...n]) },
+    ],
+    board: [...state.board],
+    notes: state.notes.map((n) => [...n]),
+    selectedCells: [...state.selectedCells],
+  };
+}
+
+function contentEquals(a: GameState, b: GameState): boolean {
+  for (let i = 0; i < CELLS; i++) {
+    if (a.board[i] !== b.board[i]) return false;
+  }
+  for (let i = 0; i < CELLS; i++) {
+    const an = a.notes[i];
+    const bn = b.notes[i];
+    if (an.length !== bn.length) return false;
+    for (let j = 0; j < an.length; j++) {
+      if (an[j] !== bn[j]) return false;
+    }
+  }
+  return true;
+}
+
+export function undo(state: GameState): GameState {
+  if (state.status !== "playing" || state.history.length === 0) return state;
+  const snapshot = state.history[state.history.length - 1];
+  return {
+    ...state,
+    board: [...snapshot.board],
+    notes: snapshot.notes.map((n) => [...n]),
+    history: state.history.slice(0, -1),
+  };
+}
+
 export function select(state: GameState, cell: number): GameState {
   if (!validCell(cell)) return state;
   if (state.status !== "playing") return state;
@@ -47,9 +86,7 @@ export function startGameTimer(state: GameState): GameState {
   if (state.status !== "playing" || state.elapsedMs > 0 || state.startTime !== undefined) {
     return state;
   }
-  const next = copy(state);
-  next.startTime = Date.now();
-  return next;
+  return { ...state, startTime: Date.now() };
 }
 
 export function checkWin(state: GameState): GameState {
@@ -67,7 +104,7 @@ export function place(state: GameState, cell: number, value: number): GameState 
   if (state.givens[cell]) return state;
   const disabled = getDisabledNumbers(state);
   if (disabled.has(value)) return state;
-  const next = copy(startGameTimer(state));
+  const next = recordSnapshot(startGameTimer(state));
   next.board[cell] = value;
   next.notes[cell] = [];
   // Auto-erase: remove this number from notes of cells in same row, column, box
@@ -92,7 +129,8 @@ export function place(state: GameState, cell: number, value: number): GameState 
   // selection action, and normal single-cell play keeps its selected cell.
   next.selectedCells = next.selectedCells.filter((i) => i !== cell);
   next.cellSelectionMode = transitionFlag(state.cellSelectionMode, next.selectedCells.length);
-  return checkWin(next);
+  const final = checkWin(next);
+  return contentEquals(state, final) ? state : final;
 }
 
 export function toggleNote(state: GameState, cell: number, value: number): GameState {
@@ -100,18 +138,18 @@ export function toggleNote(state: GameState, cell: number, value: number): GameS
   if (state.givens[cell] || state.board[cell] !== 0) return state;
   const disabled = getDisabledNumbers(state);
   if (disabled.has(value)) return state;
-  const next = copy(startGameTimer(state));
+  const next = recordSnapshot(startGameTimer(state));
   toggleNoteOnCell(next, cell, value);
-  return next;
+  return contentEquals(state, next) ? state : next;
 }
 
 export function erase(state: GameState, cell: number): GameState {
   if (!validCell(cell)) return state;
   if (state.givens[cell]) return state;
   if (state.board[cell] === 0 && state.notes[cell].length === 0) return state;
-  const next = copy(startGameTimer(state));
+  const next = recordSnapshot(startGameTimer(state));
   eraseCell(next, cell);
-  return next;
+  return contentEquals(state, next) ? state : next;
 }
 
 // A cell is "incompleted" when it is not a given and holds no number. Only
@@ -160,11 +198,11 @@ function eraseCell(state: GameState, cell: number): void {
 export function applyNoteToSelection(state: GameState, value: number): GameState {
   if (state.status !== "playing") return state;
   if (!validValue(value) || state.selectedCells.length === 0) return state;
-  const next = copy(startGameTimer(state));
+  const next = recordSnapshot(startGameTimer(state));
   for (const cell of next.selectedCells) {
     toggleNoteOnCell(next, cell, value);
   }
-  return next;
+  return contentEquals(state, next) ? state : next;
 }
 
 // Clears the notes on every cell in the multi-selection in a single action.
@@ -184,11 +222,11 @@ export function eraseSelection(state: GameState): GameState {
     }
   }
   if (!hasSomething) return state;
-  const next = copy(startGameTimer(state));
+  const next = recordSnapshot(startGameTimer(state));
   for (const cell of next.selectedCells) {
     eraseCell(next, cell);
   }
-  return next;
+  return contentEquals(state, next) ? state : next;
 }
 
 // Appends every valid, incompleted cell that is not already selected, in order.

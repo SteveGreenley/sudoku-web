@@ -2,12 +2,18 @@ export type Difficulty = "easy" | "medium" | "hard" | "expert";
 
 export type Status = "playing" | "solved";
 
+export interface Snapshot {
+  board: number[];
+  notes: number[][];
+}
+
 export interface GameState {
   difficulty: Difficulty | null;
   givens: boolean[];
   solution: number[];
   board: number[];
   notes: number[][];
+  history: Snapshot[];
   selected: number | null;
   selectedCells: number[];
   cellSelectionMode: boolean;
@@ -27,6 +33,7 @@ export function createInitialState(): GameState {
     solution: Array(CELLS).fill(0),
     board: Array(CELLS).fill(0),
     notes: Array.from({ length: CELLS }, () => []),
+    history: [],
     selected: null,
     selectedCells: [],
     cellSelectionMode: false,

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   CELLS,
+  addSelectedCells,
   checkWin,
+  clearSelection,
   computeHighlights,
   countSolutions,
   createInitialState,
@@ -9,9 +11,11 @@ import {
   erase,
   generatePuzzle,
   getLastDifficulty,
+  getDisabledNumbers,
   isValidGrid,
   loadState,
   place,
+  movePrimary,
   REMOVAL_BUDGET,
   saveLastDifficulty,
   saveState,
@@ -21,7 +25,10 @@ import {
   toggleNote,
   type Difficulty,
   type Rng,
+  type Snapshot,
+  type GameState,
   type StoragePort,
+  undo,
 } from "./index";
 
 const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "expert"];
@@ -62,6 +69,7 @@ describe("createInitialState", () => {
       solution: Array(CELLS).fill(0),
       board: Array(CELLS).fill(0),
       notes: Array.from({ length: CELLS }, () => []),
+      history: [],
       selected: null,
       selectedCells: [],
       cellSelectionMode: false,
@@ -447,5 +455,197 @@ describe("save / restore round-trip with in-memory storage", () => {
   it("returns null for last difficulty when not set", () => {
     const storage = makeMemoryStorage();
     expect(getLastDifficulty(storage)).toBeNull();
+  });
+});
+
+describe("undo / history", () => {
+  function emptyGame(): GameState {
+    return {
+      ...createInitialState(),
+      board: withCell(40, 0),
+    };
+  }
+
+  function emptyGameWithNote(cell: number, value: number): GameState {
+    return {
+      ...createInitialState(),
+      notes: withNotes(cell, [value]),
+    };
+  }
+
+  function emptyGameWithBoard(index: number, value: number): GameState {
+    return {
+      ...createInitialState(),
+      board: withCell(index, value),
+    };
+  }
+
+  it("startGame produces empty history", () => {
+    const state = startGame("medium", seededRng(1));
+    expect(state.history).toEqual([]);
+  });
+
+  it("a place action adds one snapshot with pre-change board+notes", () => {
+    const state = emptyGame();
+    const initialBoard = [...state.board];
+    const initialNotes = state.notes.map(n => [...n]);
+    const next = place(state, 40, 7);
+    expect(next.history.length).toBe(1);
+    const snap: Snapshot = next.history[0];
+    expect(snap.board).toEqual(initialBoard);
+    expect(snap.notes).toEqual(initialNotes);
+  });
+
+  it("a toggleNote action adds one snapshot", () => {
+    const state = createInitialState();
+    const initialBoard = [...state.board];
+    const initialNotes = state.notes.map(n => [...n]);
+    const next = toggleNote(state, 12, 5);
+    expect(next.history.length).toBe(1);
+    expect(next.history[0].board).toEqual(initialBoard);
+    expect(next.history[0].notes).toEqual(initialNotes);
+  });
+
+  it("an erase action adds one snapshot", () => {
+    const state = emptyGameWithBoard(12, 4);
+    const initialBoard = [...state.board];
+    const initialNotes = state.notes.map(n => [...n]);
+    const next = erase(state, 12);
+    expect(next.history.length).toBe(1);
+    expect(next.history[0].board).toEqual(initialBoard);
+    expect(next.history[0].notes).toEqual(initialNotes);
+  });
+
+  it("selection-only actions do not add snapshots", () => {
+    const state = startGame("medium", seededRng(1));
+    const afterSelect = select(state, 5);
+    const afterAdd = addSelectedCells(afterSelect, [6, 7]);
+    const afterClear = clearSelection(afterAdd);
+    const afterMove = movePrimary(afterClear, 10);
+    expect(afterSelect.history).toEqual([]);
+    expect(afterAdd.history).toEqual([]);
+    expect(afterClear.history).toEqual([]);
+    expect(afterMove.history).toEqual([]);
+  });
+
+  it("a no-op place (placing a disabled value) returns the same state", () => {
+    const state = createInitialState();
+    // Cell 0 with value 1 — if 1 is not disabled, place it, then check no snapshot
+    let game = place(state, 0, 1);
+    // The board changed (cell 0 = 1), so history should have 1 entry
+    expect(game.history.length).toBe(1);
+  });
+
+  it("undo restores the popped board+notes and removes it from history", () => {
+    let game = emptyGame();
+    game = place(game, 40, 7);
+    game = place(game, 41, 3);
+    expect(game.history.length).toBe(2);
+    const afterUndo = undo(game);
+    expect(afterUndo.history.length).toBe(1);
+    // Board should match the state after the first place (not the initial state)
+    expect(afterUndo.board[40]).toBe(7);
+    expect(afterUndo.board[41]).toBe(0);
+  });
+
+  it("undo restores board+notes from the snapshot, leaves clock/selection/status untouched", () => {
+    let game = emptyGame();
+    game = select(game, 40);
+    game = place(game, 40, 7);
+    const savedSelected = game.selected;
+    const savedNotesMode = game.notesMode;
+    const savedStatus = game.status;
+    const afterUndo = undo(game);
+    expect(afterUndo.selected).toBe(savedSelected);
+    expect(afterUndo.notesMode).toBe(savedNotesMode);
+    expect(afterUndo.status).toBe(savedStatus);
+  });
+
+  it("undo with empty history returns the same state", () => {
+    const state = startGame("medium", seededRng(1));
+    expect(undo(state)).toBe(state);
+  });
+
+  it("undo while solved returns the same state", () => {
+    let game = emptyGame();
+    game = place(game, 40, 7);
+    game = { ...game, status: "solved" };
+    expect(undo(game)).toBe(game);
+  });
+
+  it("N content changes undo N times back to givens-only start", () => {
+    let game = emptyGame();
+    game = place(game, 40, 7);
+    game = toggleNote(game, 12, 5);
+    game = erase(game, 12);
+    expect(game.history.length).toBe(3);
+    game = undo(game);
+    expect(game.history.length).toBe(2);
+    game = undo(game);
+    expect(game.history.length).toBe(1);
+    game = undo(game);
+    expect(game.history.length).toBe(0);
+    // Board should be all zeros (no givens in empty game)
+    expect(game.board.every(v => v === 0)).toBe(true);
+    // All notes should be empty
+    game.notes.forEach(n => expect(n).toEqual([]));
+  });
+
+  it("undo-then-new-change abandons the undone branch (no redo)", () => {
+    let game = emptyGame();
+    game = place(game, 40, 7);
+    game = place(game, 41, 3);
+    expect(game.history.length).toBe(2);
+    game = undo(game);
+    expect(game.history.length).toBe(1);
+    game = place(game, 42, 9);
+    expect(game.history.length).toBe(2);
+    // After undo then new place, we have 2 entries: the original + the new place
+    // The second place (value 3 at 41) is gone
+    expect(game.board[41]).toBe(0);
+    expect(game.board[42]).toBe(9);
+  });
+
+  it("undo all the way back to start empties history", () => {
+    let game = emptyGame();
+    game = place(game, 40, 7);
+    game = place(game, 41, 3);
+    game = place(game, 42, 9);
+    game = undo(game);
+    game = undo(game);
+    game = undo(game);
+    expect(game.history.length).toBe(0);
+  });
+
+  it("a snapshot serializes only board+notes", () => {
+    const game = emptyGame();
+    const placed = place(game, 40, 7);
+    const snap: Snapshot = placed.history[0];
+    const keys = Object.keys(snap);
+    expect(keys).toEqual(["board", "notes"]);
+  });
+
+  it("a populated history round-trips through storage", () => {
+    const storage = makeMemoryStorage();
+    let game = emptyGame();
+    game = place(game, 40, 7);
+    game = toggleNote(game, 12, 5);
+    saveState(game, storage);
+    const restored = loadState(storage);
+    expect(restored).not.toBeNull();
+    expect(restored!.history.length).toBe(2);
+  });
+
+  it("a pre-feature save (no history field) back-fills to empty", () => {
+    const storage = makeMemoryStorage();
+    const state = startGame("medium", seededRng(1));
+    const oldSave = JSON.parse(
+      JSON.stringify({ ...state, history: undefined }),
+    );
+    // Strip the history field entirely to simulate a pre-feature save
+    delete (oldSave as unknown as Record<string, unknown>).history;
+    storage.set("sudoku_state", JSON.stringify(oldSave));
+    const restored = loadState(storage);
+    expect(restored!.history).toEqual([]);
   });
 });

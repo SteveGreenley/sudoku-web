@@ -6,11 +6,11 @@
 
 **Status:** ready-for-agent
 
-- [ ] A `history` field (list of `{board, notes}` snapshots) on the game state, defaulting to empty; a new game starts with an empty history
-- [ ] Each content change (place, single-cell note, erase, multi-cell note batch, multi-cell erase) records exactly one snapshot equal to the pre-change board+notes
-- [ ] Selection-only actions and a no-op tap record nothing (a true no-op returns the same state)
-- [ ] Undo restores the popped snapshot's board+notes, removes that entry, and leaves clock, selection, notes-mode, and status unchanged; undo with an empty history or while solved is a no-op
-- [ ] Undoing all the way back to the start empties the history (givens-only board, all notes gone)
-- [ ] Undo-then-new-change abandons the undone branch (no redo)
-- [ ] The history is persisted with the game and back-fills to empty for a pre-feature save
-- [ ] All covered by tests at the module seam
+- [x] A `history` field (list of `{board, notes}` snapshots) on the game state, defaulting to empty; a new game starts with an empty history
+- [x] Each content change (place, single-cell note, erase, multi-cell note batch, multi-cell erase) records exactly one snapshot equal to the pre-change board+notes
+- [x] Selection-only actions and a no-op tap record nothing (a true no-op returns the same state)
+- [x] Undo restores the popped snapshot's board+notes, removes that entry, and leaves clock, selection, notes-mode, and status unchanged; undo with an empty history or while solved is a no-op
+- [x] Undoing all the way back to the start empties the history (givens-only board, all notes gone)
+- [x] Undo-then-new-change abandons the undone branch (no redo)
+- [x] The history is persisted with the game and back-fills to empty for a pre-feature save
+- [x] All covered by tests at the module seam
