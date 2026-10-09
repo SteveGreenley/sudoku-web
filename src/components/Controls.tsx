@@ -28,6 +28,7 @@ export interface ControlsProps {
   onUndo: () => void;
   onNewGame: () => void;
   onErase?: () => void;
+  maxWidth?: number;
   historyLength: number;
 }
 
@@ -37,11 +38,12 @@ export function Controls({
   onUndo,
   onNewGame,
   onErase,
+  maxWidth,
   historyLength,
 }: ControlsProps) {
   const isDisabled = historyLength === 0;
   return (
-    <div className="flex w-[min(90vw,432px)] items-center justify-center gap-2">
+    <div className="flex items-center justify-center gap-2" style={maxWidth ? { maxWidth: `${maxWidth}px` } : { width: "min(90vw, 432px)" }}>
       <NotesToggle notesMode={notesMode} onToggle={onToggleNotesMode} />
       <button
         type="button"

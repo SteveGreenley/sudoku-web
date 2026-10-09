@@ -59,7 +59,7 @@ export default function Page() {
 
   const MIN_BOARD_WIDTH = 200;
 
-  const { landscapeBoardWidth, shouldShowLandscape } = useMemo(() => {
+  const { landscapeBoardWidth, landscapeHeaderWidth, shouldShowLandscape } = useMemo(() => {
     const lbw = isLandscape && viewportWidth > 0 && viewportHeight > 0
       ? Math.min(
           viewportHeight - 160,
@@ -69,6 +69,7 @@ export default function Page() {
       : undefined;
     return {
       landscapeBoardWidth: lbw,
+      landscapeHeaderWidth: lbw ? lbw + 248 : undefined,
       shouldShowLandscape: lbw !== undefined && lbw >= MIN_BOARD_WIDTH,
     };
   }, [isLandscape, viewportWidth, viewportHeight]);
@@ -298,7 +299,7 @@ export default function Page() {
       ref={inputRef}
       tabIndex={-1}
     >
-      <Header state={state} />
+      <Header state={state} width={landscapeHeaderWidth} />
       {shouldShowLandscape ? (
         <div className="flex justify-center gap-4 px-4">
           <div className="flex-shrink-0">
@@ -315,6 +316,7 @@ export default function Page() {
           <div className="flex flex-col items-center gap-4">
             <Controls
               notesMode={effectiveNotesMode(state)}
+              maxWidth={232}
               onToggleNotesMode={() =>
                 setState((s) => {
                   if (!s.cellSelectionMode) {
