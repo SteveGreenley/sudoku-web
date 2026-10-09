@@ -1,6 +1,6 @@
 # Spec: Landscape Layout
 
-Status: 4/5 tickets resolved (verification pending)
+Status: 5/5 tickets resolved
 
 ## Problem Statement
 
