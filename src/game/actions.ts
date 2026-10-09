@@ -104,6 +104,12 @@ export function place(state: GameState, cell: number, value: number): GameState 
   if (state.givens[cell]) return state;
   const disabled = getDisabledNumbers(state);
   if (disabled.has(value)) return state;
+  // Tap same value again: clear the cell (reverse a mistake or undo a placement).
+  if (state.board[cell] === value) {
+    const next = recordSnapshot(startGameTimer(state));
+    next.board[cell] = 0;
+    return contentEquals(state, next) ? state : next;
+  }
   const next = recordSnapshot(startGameTimer(state));
   next.board[cell] = value;
   next.notes[cell] = [];

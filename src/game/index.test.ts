@@ -129,6 +129,25 @@ describe("place", () => {
     expect(place(state, 0, 0)).toBe(state);
     expect(place(state, 0, 10)).toBe(state);
   });
+
+  it("clears a cell when placing the same value that is already set", () => {
+    const state = {
+      ...createInitialState(),
+      board: withCell(40, 7),
+    };
+    const cleared = place(state, 40, 7);
+    expect(cleared.board[40]).toBe(0);
+    expect(cleared.notes[40]).toEqual([]);
+  });
+
+  it("clearing a cell via same-value places an entry in history", () => {
+    const state = {
+      ...createInitialState(),
+      board: withCell(40, 7),
+    };
+    const cleared = place(state, 40, 7);
+    expect(cleared.history.length).toBe(1);
+  });
 });
 
 describe("toggleNote", () => {
