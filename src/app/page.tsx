@@ -178,8 +178,15 @@ export default function Page() {
         });
         return;
       }
+
+      // Cmd/Ctrl+Z triggers undo
+      if (key === "z" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        commit(undo);
+        return;
+      }
     },
-    [state.selected, state.cellSelectionMode, commit],
+    [state.selected, state.cellSelectionMode, commit, state.history.length, state.status],
   );
 
   const padOnPlace = useCallback(

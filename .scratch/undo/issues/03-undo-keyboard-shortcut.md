@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-- [ ] Cmd/Ctrl+Z triggers one undo step (reverts the last board/notes change)
-- [ ] It is a no-op when the history is empty (nothing to undo) and while the puzzle is solved
-- [ ] The default browser undo behavior is suppressed for the shortcut
-- [ ] It performs the identical undo as the button (same handler)
+- [x] Cmd/Ctrl+Z triggers one undo step (reverts the last board/notes change)
+- [x] It is a no-op when the history is empty (nothing to undo) and while the puzzle is solved
+- [x] The default browser undo behavior is suppressed for the shortcut
+- [x] It performs the identical undo as the button (same handler)
