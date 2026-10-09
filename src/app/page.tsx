@@ -359,6 +359,7 @@ export default function Page() {
             }
             onUndo={() => commit(undo)}
             onNewGame={handleNewGamePrompt}
+            onErase={onErase}
             historyLength={state.history.length}
           />
           <Board
@@ -368,13 +369,14 @@ export default function Page() {
             onClearSelection={() => commit(clearSelection)}
             onGestureStart={onGestureStart}
             onGestureEnd={onGestureEnd}
+            width={432}
           />
           <NumberPad
             layout="portrait"
+            portraitContainerWidth={432}
             notesMode={effectiveNotesMode(state)}
             onPlace={padOnPlace}
             onToggleNote={padOnToggleNote}
-            onErase={onErase}
             selectedCell={state.selected}
             disabledNumbers={getDisabledNumbers(state)}
           />

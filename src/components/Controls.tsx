@@ -45,6 +45,14 @@ export function Controls({
   const isDisabled = historyLength === 0;
   return (
     <div className="flex items-center justify-center gap-2" style={maxWidth ? { maxWidth: `${maxWidth}px` } : { width: "min(90vw, 432px)" }}>
+      <button
+        type="button"
+        onClick={onNewGame}
+        className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm font-medium text-blue-600 shadow-sm transition-colors hover:bg-zinc-100"
+        aria-label="New Game"
+      >
+        <Play size={20} strokeWidth={2} />
+      </button>
       <NotesToggle notesMode={notesMode} onToggle={onToggleNotesMode} />
       <button
         type="button"
@@ -58,14 +66,6 @@ export function Controls({
         aria-label="Undo"
       >
             <Undo2 size={20} strokeWidth={2} />
-      </button>
-      <button
-        type="button"
-        onClick={onNewGame}
-        className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm font-medium text-zinc-600 shadow-sm transition-colors hover:bg-zinc-100"
-        aria-label="New Game"
-      >
-        <Play size={20} strokeWidth={2} />
       </button>
       {onErase && (
         <button

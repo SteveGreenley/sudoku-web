@@ -2,38 +2,35 @@ interface NumberPadProps {
   notesMode: boolean;
   onPlace: (value: number) => void;
   onToggleNote?: (value: number) => void;
-  onErase?: () => void;
   selectedCell: number | null;
   disabledNumbers?: Set<number>;
   layout: 'portrait' | 'landscape';
   buttonSize?: number;
+  portraitContainerWidth?: number;
 }
-
-import { Eraser } from "lucide-react";
 
 export function NumberPad({
   notesMode,
   onPlace,
   onToggleNote,
-  onErase,
   selectedCell,
   disabledNumbers = new Set(),
   layout,
   buttonSize,
+  portraitContainerWidth,
 }: NumberPadProps) {
+  const portraitButtonWidth = layout === 'portrait' && portraitContainerWidth
+    ? (portraitContainerWidth - 8 * 8) / 9
+    : undefined;
   const numberButtons = Array.from({ length: 9 }, (_, i) => i + 1).map((num) => {
     const isDisabled = disabledNumbers.has(num);
     const baseClasses = "flex items-center justify-center rounded-md border text-xl font-medium shadow-sm transition-colors";
-    const enabledClasses = "border-zinc-300 bg-white text-blue-600 hover:bg-zinc-100";
     const disabledClasses = "cursor-not-allowed border-zinc-200 bg-zinc-100 opacity-40";
-    const classes = isDisabled ? `${baseClasses} ${disabledClasses}` : `${baseClasses} ${enabledClasses}`;
-    const style = layout === 'landscape' && buttonSize ? {
-      width: `${buttonSize}px`,
-      aspectRatio: "1",
-    } : undefined;
-    const containerClasses = layout === 'landscape'
-      ? ""
-      : "h-12 w-12";
+    const style = layout === 'landscape' && buttonSize
+      ? { width: `${buttonSize}px`, aspectRatio: "1" }
+      : layout === 'portrait' && portraitButtonWidth
+        ? { width: `${portraitButtonWidth}px` }
+        : undefined;
     return (
       <button
         key={num}
@@ -48,7 +45,7 @@ export function NumberPad({
           }
         }}
         aria-label={`Place number ${num}`}
-        className={`${classes} ${containerClasses}`}
+        className={`${baseClasses} ${isDisabled ? disabledClasses : 'border-zinc-300 bg-white text-blue-600 hover:bg-zinc-100 shadow-sm'}`}
         style={style}
       >
         {num}
@@ -58,8 +55,7 @@ export function NumberPad({
 
   const containerClasses = layout === 'landscape'
     ? "grid grid-cols-3 gap-2"
-    : "flex w-[min(90vw,432px)] justify-center gap-2";
-  const isPortrait = layout === 'portrait';
+    : "flex justify-center gap-2";
 
   return (
     <div
@@ -68,16 +64,6 @@ export function NumberPad({
       aria-label="Number pad"
     >
       {numberButtons}
-      {isPortrait && onErase && (
-        <button
-          type="button"
-          onClick={onErase}
-          className="flex h-12 w-12 items-center justify-center rounded-md border border-zinc-300 bg-white shadow-sm transition-colors text-blue-600 hover:bg-zinc-100"
-          aria-label="Erase"
-        >
-          <Eraser size={20} strokeWidth={2} />
-        </button>
-      )}
     </div>
   );
 }
