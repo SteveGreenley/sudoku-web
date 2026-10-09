@@ -32,6 +32,7 @@ import {
   type Difficulty,
   type GameState,
   type StoragePort,
+  undo,
 } from "@/game";
 
 const localStoragePort: StoragePort = {
@@ -285,7 +286,9 @@ export default function Page() {
             return next;
           })
         }
+        onUndo={() => commit(undo)}
         onNewGame={handleNewGamePrompt}
+        historyLength={state.history.length}
       />
       <Board
         state={state}

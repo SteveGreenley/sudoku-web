@@ -6,8 +6,8 @@
 
 **Status:** ready-for-agent
 
-- [ ] Undo button renders in the controls row above the board, ordered Notes / Undo / New Game, styled to match the other two
-- [ ] The button is disabled and greyed out (existing disabled-button styling) exactly when the history is empty, and enabled otherwise
-- [ ] Tapping it performs one undo step and the board/notes update; repeated taps step back one change at a time
-- [ ] At the start of a game the button is disabled; it enables after the first real change; it disables again once the history is empty
-- [ ] The undo result is persisted with the game
+- [x] Undo button renders in the controls row above the board, ordered Notes / Undo / New Game, styled to match the other two
+- [x] The button is disabled and greyed out (existing disabled-button styling) exactly when the history is empty, and enabled otherwise
+- [x] Tapping it performs one undo step and the board/notes update; repeated taps step back one change at a time
+- [x] At the start of a game the button is disabled; it enables after the first real change; it disables again once the history is empty
+- [x] The undo result is persisted with the game
