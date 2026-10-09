@@ -61,7 +61,10 @@ See [GLOSSARY.md](./GLOSSARY.md). Key decision: mistakes are judged against the 
 - Header: title, difficulty, timer
 - Board: 9×9 grid with heavier 3×3 box borders
 - Controls row: New Game, Notes toggle, Erase
-- Number pad: beside the board on desktop, below it on mobile
+- Number pad: beside the board in landscape (width > height), below it in portrait
+  - In landscape the number pad is a 3×3 grid (9 buttons); the Erase button moves to a top button row (Notes, Undo, New Game, Erase) above the grid
+  - The board grows in landscape to fill available height, capped so the board and panel fit the width
+  - A small client-side hook tracks viewport aspect (innerWidth > innerHeight); a square window (width == height) uses the portrait layout
 
 ## Out of scope (v1)
 

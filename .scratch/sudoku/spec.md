@@ -49,7 +49,8 @@ No server, no account, no network dependency.
 26. As a player, I want to be asked to confirm before New Game discards an in-progress game, so that I cannot lose progress by accident.
 27. As a player, I want my last chosen difficulty remembered as the default, so that I don't re-pick it every time.
 28. As a player, I want to overwrite an existing placed number in a cell, so that I can change my mind in place.
-29. As a player, I want the layout to adapt (number pad beside the board on desktop, below it on phones), so that the game is comfortable on any screen.
+29. As a player, I want the layout to adapt (number pad beside the board in landscape, below it in portrait), so that the game is comfortable on any screen.
+30. As a player, I want the number pad to switch to a 3×3 grid in landscape, with the Erase button moving into a top button row, so that the number pad uses the screen width effectively.
 30. As a player, I want the whole game to run offline in the browser with no account, so that it works anywhere.
 31. As a player, I want mistake feedback to reflect the puzzle's true solution rather than merely visible duplicates, so that I am told about a wrong number even before it visibly clashes with anything.
 

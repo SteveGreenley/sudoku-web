@@ -531,7 +531,7 @@ describe("undo / history", () => {
   it("a no-op place (placing a disabled value) returns the same state", () => {
     const state = createInitialState();
     // Cell 0 with value 1 — if 1 is not disabled, place it, then check no snapshot
-    let game = place(state, 0, 1);
+    const game = place(state, 0, 1);
     // The board changed (cell 0 = 1), so history should have 1 entry
     expect(game.history.length).toBe(1);
   });
