@@ -70,10 +70,10 @@ export function NumberPad({
         <button
           type="button"
           onClick={onErase}
-          className="flex h-12 w-12 items-center justify-center rounded-md border border-zinc-300 bg-white text-blue-600 shadow-sm transition-colors hover:bg-zinc-100 text-xl"
+          className="flex h-12 w-12 items-center justify-center rounded-md border border-zinc-300 bg-white text-blue-600 shadow-sm transition-colors hover:bg-zinc-100"
           aria-label="Erase"
         >
-          ⌫
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 10.8-5.2-5.2a2 2 0 0 0-2.8 0L3 15.8a2 2 0 0 0 0 2.8l5.2 5.2a2 2 0 0 0 2.8 0L20 15.6a2 2 0 0 0 0-2.8Z"/><path d="m15.8 5.2 5.2 5.2"/></svg>
         </button>
       )}
     </div>
