@@ -34,11 +34,11 @@ export function Cell({
   const col = index % SIZE;
   const right =
     col === 2 || col === 5 || col === 8
-      ? "border-r-2 border-r-line-strong"
+      ? "border-r-[5px] border-r-line-strong"
       : "border-r border-line";
   const bottom =
     row === 2 || row === 5 || row === 8
-      ? "border-b-2 border-b-line-strong"
+      ? "border-b-[5px] border-b-line-strong"
       : "border-b border-line";
   const sameNumber = sameNumberStyle(
     value,
