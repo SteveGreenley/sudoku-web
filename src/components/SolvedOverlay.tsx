@@ -29,7 +29,7 @@ export function SolvedOverlay({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="rounded-xl bg-surface p-8 text-center shadow-xl">
-        <h2 className="mb-2 text-3xl font-bold text-text-strong">Solved!</h2>
+        <h2 className="mb-2 font-heading text-3xl font-bold text-text-strong">Solved!</h2>
         {difficulty && (
           <p className="mb-4 text-lg text-text-soft">{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}</p>
         )}

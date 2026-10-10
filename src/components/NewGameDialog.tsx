@@ -30,7 +30,7 @@ export function NewGameDialog({ onClose, onConfirm }: NewGameDialogProps) {
       <div className="rounded-xl bg-surface p-8 shadow-xl">
         {step === "confirm" ? (
           <div>
-            <h2 className="mb-4 text-2xl font-bold text-text-strong">
+            <h2 className="mb-4 font-heading text-2xl font-bold text-text-strong">
               Start New Game?
             </h2>
             <p className="mb-6 text-text-soft">
@@ -55,7 +55,7 @@ export function NewGameDialog({ onClose, onConfirm }: NewGameDialogProps) {
           </div>
         ) : (
           <div>
-            <h2 className="mb-4 text-2xl font-bold text-text-strong">
+            <h2 className="mb-4 font-heading text-2xl font-bold text-text-strong">
               Choose Difficulty
             </h2>
             <div className="grid grid-cols-2 gap-2">

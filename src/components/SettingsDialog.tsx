@@ -149,7 +149,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
         className="max-h-[calc(100vh-8rem)] w-[min(90vw,480px)] overflow-y-auto rounded-xl bg-surface shadow-xl"
       >
         <div className="p-6">
-          <h2 className="mb-6 text-2xl font-bold text-text-strong">
+          <h2 className="mb-6 font-heading text-2xl font-bold text-text-strong">
             Appearance
           </h2>
 

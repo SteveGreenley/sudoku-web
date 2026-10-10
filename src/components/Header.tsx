@@ -17,7 +17,7 @@ function formatElapsed(ms: number): string {
 export function Header({ state, width, onOpenSettings }: HeaderProps) {
   return (
     <header className={`flex items-baseline justify-between ${width ? "" : "w-[min(90vw,432px)]"}`} style={width ? { width: `${width}px` } : undefined}>
-      <h1 className="text-2xl font-bold tracking-tight">Sudoku</h1>
+      <h1 className="font-heading text-2xl font-bold tracking-tight">Sudoku</h1>
       <div className="flex items-baseline gap-4 text-sm">
         <span className="font-medium text-text-soft">
           {state.difficulty ? capitalize(state.difficulty) : "—"}

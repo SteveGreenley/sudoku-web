@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Abril_Fatface, Poppins } from "next/font/google";
 import "./globals.css";
 import { ClientThemeProvider } from "./client-theme";
 
-const inter = Inter({
+const poppins = Poppins({
+  weight: ["300", "400"],
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
+  variable: "--font-body",
+});
+
+const abril = Abril_Fatface({
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-heading",
 });
 
 export const metadata: Metadata = {
@@ -54,7 +62,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={inter.className}
+      className={`${poppins.variable} ${abril.variable}`}
       data-theme="classic"
       suppressHydrationWarning
     >

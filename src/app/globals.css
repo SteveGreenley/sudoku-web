@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @theme {
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-heading);
   --color-page: #f4f4f5;
   --color-surface: #f4f4f5;
   --color-surface-hover: #e4e4e7;
