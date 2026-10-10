@@ -117,9 +117,11 @@ export function Board({
     };
   }, []);
 
+  const containerWidth = width ? width + 10 : undefined;
   return (
     <div
-      className="flex w-[min(90vw,432px)] touch-none flex-col rounded-lg border-l-[5px] border-t-[5px] shadow-md"
+      className={`flex w-[min(90vw,432px)] touch-none flex-col overflow-hidden rounded-lg border-[5px] border-line-strong shadow-md`}
+      style={containerWidth ? { width: `${containerWidth}px` } : undefined}
     >
       <div
         className="grid w-full touch-none grid-cols-9"
