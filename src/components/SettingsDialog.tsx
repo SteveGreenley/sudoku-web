@@ -56,9 +56,19 @@ function getAppearanceState(appearance: Appearance): { applyDark: boolean } {
   return { applyDark: dark };
 }
 
-function ThemePreview({ theme }: { theme: Theme }) {
+function isDarkForAppearance(appearance: Appearance): boolean {
+  if (appearance === "system") {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  return appearance === "dark";
+}
+
+function ThemePreview({ theme, appearance }: { theme: Theme; appearance: Appearance }) {
   const p = THEME_PALETTES[theme];
-  const isDark = theme === "ink" || false;
+  const dark = isDarkForAppearance(appearance);
+
+  // Dark mode surface for the preview (dark background swatch in row 1)
+  const darkSurface = "#27272a";
 
   return (
     <div
@@ -77,7 +87,7 @@ function ThemePreview({ theme }: { theme: Theme }) {
         />
         <div
           className="h-5 w-8 rounded-sm border"
-          style={{ backgroundColor: isDark ? "#27272a" : p.surface }}
+          style={{ backgroundColor: dark ? darkSurface : p.surface }}
         />
       </div>
       {/* Row 2: text + line */}
@@ -160,7 +170,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
                       : "border-line bg-surface text-text-muted hover:bg-surface-hover"
                   }`}
                 >
-                  <ThemePreview theme={t.value} />
+                  <ThemePreview theme={t.value} appearance={appearance} />
                   <span className="text-sm font-medium">{t.label}</span>
                 </button>
               ))}
