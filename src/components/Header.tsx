@@ -12,7 +12,7 @@ export function Header({ state, width }: { state: GameState; width?: number }) {
     <header className={`flex items-baseline justify-between ${width ? "" : "w-[min(90vw,432px)]"}`} style={width ? { width: `${width}px` } : undefined}>
       <h1 className="text-2xl font-bold tracking-tight">Sudoku</h1>
       <div className="flex items-baseline gap-4 text-sm">
-        <span className="font-medium text-zinc-500">
+        <span className="font-medium text-text-soft">
           {state.difficulty ? capitalize(state.difficulty) : "—"}
         </span>
         <span className="font-mono tabular-nums">{formatElapsed(state.elapsedMs)}</span>

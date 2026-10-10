@@ -25,7 +25,7 @@ export function NumberPad({
   const numberButtons = Array.from({ length: 9 }, (_, i) => i + 1).map((num) => {
     const isDisabled = disabledNumbers.has(num);
     const baseClasses = "flex items-center justify-center rounded-md border text-xl font-medium shadow-sm transition-colors";
-    const disabledClasses = "cursor-not-allowed border-zinc-200 bg-zinc-100 opacity-40";
+    const disabledClasses = "cursor-not-allowed border-line-faint bg-surface-disabled opacity-40";
     const style = layout === 'landscape' && buttonSize
       ? { width: `${buttonSize}px`, aspectRatio: "1" }
       : layout === 'portrait' && portraitButtonWidth
@@ -45,7 +45,7 @@ export function NumberPad({
           }
         }}
         aria-label={`Place number ${num}`}
-        className={`${baseClasses} ${isDisabled ? disabledClasses : 'border-zinc-300 bg-white text-blue-600 hover:bg-zinc-100 shadow-sm'}`}
+        className={`${baseClasses} ${isDisabled ? disabledClasses : 'border-line bg-surface text-accent hover:bg-surface-hover shadow-sm'}`}
         style={style}
       >
         {num}

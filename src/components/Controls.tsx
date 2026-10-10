@@ -14,8 +14,8 @@ export function NotesToggle({ notesMode, onToggle }: NotesToggleProps) {
       title={notesMode ? "Notes ON" : "Notes OFF"}
       className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
         notesMode
-          ? "border-zinc-800 bg-zinc-800 text-white"
-          : "border-zinc-300 bg-white text-blue-600 hover:bg-zinc-100"
+          ? "border-ink bg-ink text-inverse"
+          : "border-line bg-surface text-accent hover:bg-surface-hover"
       }`}
     >
       <NotebookPen size={20} strokeWidth={2} />
@@ -48,7 +48,7 @@ export function Controls({
       <button
         type="button"
         onClick={onNewGame}
-        className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm font-medium text-blue-600 shadow-sm transition-colors hover:bg-zinc-100"
+        className="rounded-md border border-line bg-surface px-2 py-1.5 text-sm font-medium text-accent shadow-sm transition-colors hover:bg-surface-hover"
         aria-label="New Game"
       >
         <Play size={20} strokeWidth={2} />
@@ -58,10 +58,10 @@ export function Controls({
         type="button"
         onClick={onUndo}
         disabled={isDisabled}
-        className={`rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm font-medium shadow-sm transition-colors ${
+        className={`rounded-md border border-line bg-surface px-2 py-1.5 text-sm font-medium shadow-sm transition-colors ${
           isDisabled
-            ? "text-zinc-400 opacity-40 cursor-not-allowed"
-            : "text-blue-600 hover:bg-zinc-100"
+            ? "text-text-faint opacity-40 cursor-not-allowed"
+            : "text-accent hover:bg-surface-hover"
         }`}
         aria-label="Undo"
       >
@@ -71,7 +71,7 @@ export function Controls({
         <button
           type="button"
           onClick={onErase}
-          className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm font-medium text-blue-600 shadow-sm transition-colors hover:bg-zinc-100"
+          className="rounded-md border border-line bg-surface px-2 py-1.5 text-sm font-medium text-accent shadow-sm transition-colors hover:bg-surface-hover"
           aria-label="Erase"
         >
           <Eraser size={20} strokeWidth={2} />

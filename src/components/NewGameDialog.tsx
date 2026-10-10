@@ -30,24 +30,24 @@ export function NewGameDialog({ onClose, onConfirm }: NewGameDialogProps) {
       <div className="rounded-xl bg-white p-8 shadow-xl">
         {step === "confirm" ? (
           <div>
-            <h2 className="mb-4 text-2xl font-bold text-zinc-900">
+            <h2 className="mb-4 text-2xl font-bold text-text-strong">
               Start New Game?
             </h2>
-            <p className="mb-6 text-zinc-600">
+            <p className="mb-6 text-text-soft">
               Your current game will be lost.
             </p>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-100"
+                className="rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-text-muted shadow-sm transition-colors hover:bg-surface-hover"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmStep}
-                className="rounded-md border border-zinc-300 bg-zinc-800 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-zinc-700"
+                className="rounded-md border border-ink bg-ink px-4 py-2 text-sm font-medium text-inverse shadow-sm transition-colors hover:bg-ink-hover"
               >
                 New Game
               </button>
@@ -55,7 +55,7 @@ export function NewGameDialog({ onClose, onConfirm }: NewGameDialogProps) {
           </div>
         ) : (
           <div>
-            <h2 className="mb-4 text-2xl font-bold text-zinc-900">
+            <h2 className="mb-4 text-2xl font-bold text-text-strong">
               Choose Difficulty
             </h2>
             <div className="grid grid-cols-2 gap-2">
@@ -66,8 +66,8 @@ export function NewGameDialog({ onClose, onConfirm }: NewGameDialogProps) {
                   onClick={() => handleSelectDifficulty(d)}
                   className={`rounded-md border px-4 py-3 text-sm font-medium transition-colors ${
                     chosen === d
-                      ? "border-zinc-800 bg-zinc-800 text-white"
-                      : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100"
+                      ? "border-ink bg-ink text-inverse"
+                      : "border-line bg-surface text-text-muted hover:bg-surface-hover"
                   }`}
                 >
                   {d.charAt(0).toUpperCase() + d.slice(1)}

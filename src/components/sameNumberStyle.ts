@@ -8,18 +8,7 @@ export type SameNumberAppearance = "bold" | "shade";
 
 export const sameNumberAppearance: SameNumberAppearance = "shade";
 
-/* 
-Palette (for Tailwind detection):
-bg-fuchsia-300 bg-fuchsia-100 text-fuchsia-900 text-fuchsia-700
-bg-orange-300 bg-orange-100 text-orange-900 text-orange-700
-bg-amber-500 bg-amber-100 text-amber-900 text-amber-600
-bg-yellow-300 bg-yellow-100 text-yellow-900 text-yellow-800
-bg-lime-300 bg-lime-100 text-lime-900 text-lime-700
-bg-lime-400 bg-lime-50 text-lime-50 text-lime-700
-bg-teal-400 bg-teal-100 text-teal-900 text-teal-600
-bg-cyan-300 bg-cyan-100 text-cyan-900 text-cyan-700
-bg-indigo-300 bg-indigo-100 text-indigo-900 text-indigo-700
-*/
+
 // A palette of nine colors, keyed by the number's value (index = value - 1),
 // each with a dark variant (selected cell) and a light variant (other
 // instances). All pairs are mutually distinguishable and clear of the app's

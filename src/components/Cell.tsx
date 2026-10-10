@@ -34,12 +34,12 @@ export function Cell({
   const col = index % SIZE;
   const right =
     col === 2 || col === 5 || col === 8
-      ? "border-r-2 border-r-zinc-800"
-      : "border-r border-zinc-300";
+      ? "border-r-2 border-r-line-strong"
+      : "border-r border-line";
   const bottom =
     row === 2 || row === 5 || row === 8
-      ? "border-b-2 border-b-zinc-800"
-      : "border-b border-b-zinc-300";
+      ? "border-b-2 border-b-line-strong"
+      : "border-b border-line";
   const sameNumber = sameNumberStyle(
     value,
     isSelected,
@@ -49,12 +49,12 @@ export function Cell({
   const isMistake =
     value !== 0 && !isGiven && value !== solutionValue;
   const baseFill = inSelectionMode
-    ? "bg-white"
+    ? "bg-surface"
     : isSelected
-      ? "bg-blue-300"
+      ? "bg-accent-fill"
       : isHighlighted
-        ? "bg-blue-100"
-        : "bg-white hover:bg-zinc-100";
+        ? "bg-accent-soft"
+        : "bg-surface hover:bg-surface-hover";
   const fill = isMistake
     ? "bg-red-500"
     : sameNumber.background && sameNumber.background.startsWith("#")
@@ -67,13 +67,13 @@ export function Cell({
       : undefined;
   const selectionMarker =
     inSelectionMode && isInSelection
-      ? "outline-2 outline-dashed outline-blue-500 -outline-offset-2"
+      ? "outline-2 outline-dashed outline-accent-outline -outline-offset-2"
       : "";
 
-  const baseTextColor = isGiven ? "text-zinc-900" : "text-blue-600";
+  const baseTextColor = isGiven ? "text-text-strong" : "text-accent";
   const fontWeight = isMistake ? "font-bold" : sameNumber.text ?? (isGiven ? "font-semibold" : "font-normal");
   const textColor = isMistake
-    ? "text-white"
+    ? "text-inverse"
     : sameNumber.textColor && sameNumber.textColor.startsWith("#")
       ? ""
       : sameNumber.textColor ?? baseTextColor;
@@ -82,7 +82,7 @@ export function Cell({
 
   const noteGrid =
     notes.length > 0
-      ? `grid grid-cols-3 gap-x-1 gap-y-0.5 p-0.5 text-[10px] leading-none text-zinc-500`
+      ? `grid grid-cols-3 gap-x-1 gap-y-0.5 p-0.5 text-[10px] leading-none text-text-soft`
       : "";
   const noteItems = notes.filter((n) => n !== 0).sort((a, b) => a - b);
 
