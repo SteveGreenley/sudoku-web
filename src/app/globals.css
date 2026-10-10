@@ -42,3 +42,91 @@
   --color-accent-soft: #172554;
   --color-accent-outline: #93c5fd;
 }
+
+/* Emerald theme - light */
+[data-theme='emerald'] {
+  --color-page: #f4f4f5;
+  --color-surface: #f4f4f5;
+  --color-surface-hover: #e4e4e7;
+  --color-surface-disabled: #f4f4f5;
+  --color-line: #d4d4d8;
+  --color-line-faint: #e4e4e7;
+  --color-line-strong: #27272a;
+  --color-ink: #27272a;
+  --color-ink-hover: #3f3f46;
+  --color-inverse: #ffffff;
+  --color-text-strong: #18181b;
+  --color-text-soft: #71717a;
+  --color-text-muted: #52525b;
+  --color-text-faint: #a1a1aa;
+  --color-accent: #059669;
+  --color-accent-fill: #a7f3d0;
+  --color-accent-soft: #ecfdf5;
+  --color-accent-outline: #10b981;
+}
+
+/* Emerald theme - dark */
+[data-theme='emerald'].dark {
+  --color-page: #09090b;
+  --color-surface: #09090b;
+  --color-surface-hover: #18181b;
+  --color-surface-disabled: #09090b;
+  --color-line: #27272a;
+  --color-line-faint: #18181b;
+  --color-line-strong: #d4d4d8;
+  --color-ink: #f4f4f5;
+  --color-ink-hover: #e4e4e7;
+  --color-inverse: #18181b;
+  --color-text-strong: #f4f4f5;
+  --color-text-soft: #a1a1aa;
+  --color-text-muted: #71717a;
+  --color-text-faint: #52525b;
+  --color-accent: #34d399;
+  --color-accent-fill: #064e3b;
+  --color-accent-soft: #022c22;
+  --color-accent-outline: #10b981;
+}
+
+/* Ink theme - light */
+[data-theme='ink'] {
+  --color-page: #fafaf9;
+  --color-surface: #fafaf9;
+  --color-surface-hover: #f5f5f4;
+  --color-surface-disabled: #fafaf9;
+  --color-line: #e7e5e4;
+  --color-line-faint: #f5f5f4;
+  --color-line-strong: #1c1917;
+  --color-ink: #1c1917;
+  --color-ink-hover: #292524;
+  --color-inverse: #ffffff;
+  --color-text-strong: #0c0a09;
+  --color-text-soft: #78716c;
+  --color-text-muted: #57534e;
+  --color-text-faint: #a8a29e;
+  --color-accent: #a8a29e;
+  --color-accent-fill: #d6d3d1;
+  --color-accent-soft: #e7e5e4;
+  --color-accent-outline: #78716c;
+}
+
+/* Ink theme - dark */
+[data-theme='ink'].dark {
+  --color-page: #0c0a09;
+  --color-surface: #0c0a09;
+  --color-surface-hover: #1c1917;
+  --color-surface-disabled: #0c0a09;
+  --color-line: #292524;
+  --color-line-faint: #1c1917;
+  --color-line-strong: #d6d3d1;
+  --color-ink: #e7e5e4;
+  --color-ink-hover: #d6d3d1;
+  --color-inverse: #1c1917;
+  --color-text-strong: #e7e5e4;
+  --color-text-soft: #a8a29e;
+  --color-text-muted: #78716c;
+  --color-text-faint: #57534e;
+  --color-accent: #a8a29e;
+  --color-accent-fill: #44403c;
+  --color-accent-soft: #292524;
+  --color-accent-outline: #78716c;
+}
