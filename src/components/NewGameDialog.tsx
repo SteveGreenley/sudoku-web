@@ -27,7 +27,7 @@ export function NewGameDialog({ onClose, onConfirm }: NewGameDialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="rounded-xl bg-white p-8 shadow-xl">
+      <div className="rounded-xl bg-surface p-8 shadow-xl">
         {step === "confirm" ? (
           <div>
             <h2 className="mb-4 text-2xl font-bold text-text-strong">
