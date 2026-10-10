@@ -117,37 +117,31 @@ export function Board({
     };
   }, []);
 
-  const containerWidth = width ? width + 10 : undefined;
   return (
     <div
-      className={`flex w-[min(90vw,432px)] touch-none flex-col overflow-hidden rounded-lg border-[5px] border-line-strong shadow-md`}
-      style={containerWidth ? { width: `${containerWidth}px` } : undefined}
+      className="grid w-[min(90vw,432px)] touch-none grid-cols-9 rounded border-l-2 border-t-2 border-line-strong shadow-md"
+      style={width ? { width: `${width}px`, height: `${width}px` } : undefined}
+      role="grid"
+      aria-label="Sudoku board"
+      onPointerDown={handlePointerDown}
     >
-      <div
-        className="grid w-full touch-none grid-cols-9"
-        role="grid"
-        aria-label="Sudoku board"
-        onPointerDown={handlePointerDown}
-        style={width ? { width: `${width}px`, height: `${width}px` } : undefined}
-      >
-        {state.board.map((value, index) => (
-          <Cell
-            key={index}
-            index={index}
-            value={value}
-            solutionValue={state.solution[index]}
-            isGiven={state.givens[index]}
-            notes={state.notes[index]}
-            isSelected={state.selected === index}
-            isHighlighted={highlights?.highlighted.has(index) ?? false}
-            isSameNumber={highlights?.bold.has(index) ?? false}
-            isSameNoteNumber={highlights?.boldNotes.has(index) ?? false}
-            selectedValue={state.board[state.selected ?? -1] ?? 0}
-            isInSelection={state.selectedCells.includes(index)}
-            inSelectionMode={state.cellSelectionMode}
-          />
-        ))}
-      </div>
+      {state.board.map((value, index) => (
+        <Cell
+          key={index}
+          index={index}
+          value={value}
+          solutionValue={state.solution[index]}
+          isGiven={state.givens[index]}
+          notes={state.notes[index]}
+          isSelected={state.selected === index}
+          isHighlighted={highlights?.highlighted.has(index) ?? false}
+          isSameNumber={highlights?.bold.has(index) ?? false}
+          isSameNoteNumber={highlights?.boldNotes.has(index) ?? false}
+          selectedValue={state.board[state.selected ?? -1] ?? 0}
+          isInSelection={state.selectedCells.includes(index)}
+          inSelectionMode={state.cellSelectionMode}
+        />
+      ))}
     </div>
   );
 }
