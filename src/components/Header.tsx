@@ -1,4 +1,5 @@
 import type { GameState } from "@/game";
+import { Settings } from "lucide-react";
 
 interface HeaderProps {
   state: GameState;
@@ -29,10 +30,7 @@ export function Header({ state, width, onOpenSettings }: HeaderProps) {
             className="text-text-muted hover:text-text-soft"
             aria-label="Settings"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-1.73 1l-.15.09a2 2 0 0 0-2.66 1l-.15.09a2 2 0 0 0-1 1.73v.44a2 2 0 0 1 1 1.73l.43.25a2 2 0 0 1 1.73 1l.15.09a2 2 0 0 0 2.66-1l.15.09a2 2 0 0 0 1 1.73v.44a2 2 0 0 0 1 1.73l.43.25a2 2 0 0 1 1.73 1l.15.09a2 2 0 0 0 2.66 1l.15.09a2 2 0 0 0 1-1.73v-.44a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 1.73-1l.15-.09a2 2 0 0 0 2.66-1l.15.09a2 2 0 0 0 1-1.73v-.44a2 2 0 0 0-1-1.73l-.43-.25a2 2 0 0 1-1.73-1l-.15-.09a2 2 0 0 0-2.66 1z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
+            <Settings size={20} strokeWidth={2} />
           </button>
         )}
       </div>
