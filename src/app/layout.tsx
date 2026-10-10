@@ -16,6 +16,12 @@ export const metadata: Metadata = {
 };
 
 function getAppearance(): { theme: string; dark: boolean } {
+  const storedTheme =
+    typeof localStorage !== "undefined"
+      ? localStorage.getItem("sudoku:theme")
+      : null;
+  const theme = storedTheme === "emerald" || storedTheme === "ink" ? storedTheme : "classic";
+
   const stored =
     typeof localStorage !== "undefined"
       ? localStorage.getItem("sudoku:appearance")
@@ -28,9 +34,9 @@ function getAppearance(): { theme: string; dark: boolean } {
     const prefersDark =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches;
-    return { theme: "classic", dark: prefersDark };
+    return { theme, dark: prefersDark };
   }
-  return { theme: "classic", dark: appearance === "dark" };
+  return { theme, dark: appearance === "dark" };
 }
 
 function PrePaintScript() {

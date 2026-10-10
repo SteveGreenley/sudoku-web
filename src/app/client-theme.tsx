@@ -9,6 +9,12 @@ function applyTheme(theme: string, dark: boolean) {
 
 export function ClientThemeProvider() {
   useLayoutEffect(() => {
+    const storedTheme =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem("sudoku:theme")
+        : null;
+    const theme = storedTheme === "emerald" || storedTheme === "ink" ? storedTheme : "classic";
+
     const stored =
       typeof localStorage !== "undefined"
         ? localStorage.getItem("sudoku:appearance")
@@ -23,7 +29,7 @@ export function ClientThemeProvider() {
     } else {
       dark = appearance === "dark";
     }
-    applyTheme("classic", dark);
+    applyTheme(theme, dark);
   }, []);
 
   return null;

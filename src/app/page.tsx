@@ -7,6 +7,7 @@ import { Controls } from "@/components/Controls";
 
 import { Header } from "@/components/Header";
 import { NewGameDialog } from "@/components/NewGameDialog";
+import { SettingsDialog } from "@/components/SettingsDialog";
 import { NumberPad } from "@/components/NumberPad";
 import { SolvedOverlay } from "@/components/SolvedOverlay";
 import {
@@ -50,6 +51,7 @@ export default function Page() {
   const inputRef = useRef<HTMLDivElement>(null);
   const boardGestureRef = useRef(false);
   const [showNewGame, setShowNewGame] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const { isLandscape, viewportWidth, viewportHeight } = useLayout();
 
@@ -255,6 +257,10 @@ export default function Page() {
     setShowNewGame(true);
   }, []);
 
+  const handleOpenSettings = useCallback(() => {
+    setShowSettings(true);
+  }, []);
+
   const handleNewGameConfirm = useCallback(
     (d: Difficulty) => {
       setShowNewGame(false);
@@ -299,11 +305,11 @@ export default function Page() {
       ref={inputRef}
       tabIndex={-1}
     >
-      <Header state={state} width={landscapeHeaderWidth} />
+      <Header state={state} width={landscapeHeaderWidth} onOpenSettings={handleOpenSettings} />
       {shouldShowLandscape ? (
         <div className="flex justify-center gap-4 px-4">
-          <div className="flex-shrink-0">
-            <Board
+           <div className="flex-shrink-0">
+             <Board
               state={state}
               onTapCell={onTapCell}
               onAddSelected={onAddSelected}
@@ -393,6 +399,11 @@ export default function Page() {
         <NewGameDialog
           onClose={() => setShowNewGame(false)}
           onConfirm={handleNewGameConfirm}
+        />
+      )}
+      {showSettings && (
+        <SettingsDialog
+          onClose={() => setShowSettings(false)}
         />
       )}
     </main>
