@@ -119,7 +119,7 @@ export function Board({
 
   return (
     <div
-      className="grid w-[min(90vw,432px)] touch-none grid-cols-9 rounded border-l-2 border-r-[5px] border-b-[5px] border-t-2 border-line-strong shadow-md"
+      className="grid w-[min(90vw,432px)] touch-none grid-cols-9 rounded border-[5px] border-line-strong shadow-md"
       style={width ? { width: `${width}px`, height: `${width}px` } : undefined}
       role="grid"
       aria-label="Sudoku board"
