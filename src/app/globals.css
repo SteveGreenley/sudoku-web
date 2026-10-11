@@ -24,7 +24,7 @@
 }
 
 /* Dark mode override block — Classic theme */
-[data-theme='classic'].dark {
+[data-theme="classic"].dark {
   --color-page: #18181b;
   --color-surface: #27272a;
   --color-surface-hover: #3f3f46;
@@ -46,7 +46,7 @@
 }
 
 /* Emerald theme - light */
-[data-theme='emerald'] {
+[data-theme="emerald"] {
   --color-page: #f4f4f5;
   --color-surface: #f4f4f5;
   --color-surface-hover: #e4e4e7;
@@ -68,7 +68,7 @@
 }
 
 /* Emerald theme - dark */
-[data-theme='emerald'].dark {
+[data-theme="emerald"].dark {
   --color-page: #09090b;
   --color-surface: #09090b;
   --color-surface-hover: #18181b;
@@ -90,7 +90,7 @@
 }
 
 /* Ink theme - light */
-[data-theme='ink'] {
+[data-theme="ink"] {
   --color-page: #fafaf9;
   --color-surface: #fafaf9;
   --color-surface-hover: #f5f5f4;
@@ -107,12 +107,12 @@
   --color-text-faint: #a8a29e;
   --color-accent: #a8a29e;
   --color-accent-fill: #d6d3d1;
-  --color-accent-soft: #e7e5e4;
+  --color-accent-soft: #f0f0ee;
   --color-accent-outline: #78716c;
 }
 
 /* Ink theme - dark */
-[data-theme='ink'].dark {
+[data-theme="ink"].dark {
   --color-page: #0c0a09;
   --color-surface: #0c0a09;
   --color-surface-hover: #1c1917;
@@ -129,6 +129,6 @@
   --color-text-faint: #57534e;
   --color-accent: #a8a29e;
   --color-accent-fill: #44403c;
-  --color-accent-soft: #292524;
+  --color-accent-soft: #191919;
   --color-accent-outline: #78716c;
 }
