@@ -167,7 +167,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
                   className={`flex flex-col items-center gap-2 rounded-lg border p-3 transition-colors ${
                     theme === t.value
                       ? "border-ink bg-ink text-inverse"
-                      : "border-line bg-surface text-text-muted hover:bg-surface-hover"
+                      : "border-line bg-surface text-text hover:bg-surface-hover"
                   }`}
                 >
                   <ThemePreview theme={t.value} appearance={appearance} />
@@ -191,7 +191,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
                   className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
                     appearance === a.value
                       ? "border-ink bg-ink text-inverse"
-                      : "border-line bg-surface text-text-muted hover:bg-surface-hover"
+                      : "border-line bg-surface text-text hover:bg-surface-hover"
                   }`}
                 >
                   <span className="text-sm font-medium">{a.label}</span>
@@ -217,7 +217,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-text-muted shadow-sm transition-colors hover:bg-surface-hover"
+                className="rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-text shadow-sm transition-colors hover:bg-surface-hover"
             >
               Cancel
             </button>
