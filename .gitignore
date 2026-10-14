@@ -34,3 +34,7 @@ yarn-error.log*
 
 # playwright
 .playwright-mcp/
+e2e/
+
+# scratch
+.sandbox/

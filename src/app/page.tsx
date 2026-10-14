@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLayout } from "@/hooks/useLayout";
+import { useLayout, type DeviceCategory, type LayoutMode } from "@/hooks/useLayout";
 import { Board } from "@/components/Board";
 import { Controls } from "@/components/Controls";
 
@@ -53,7 +53,15 @@ export default function Page() {
   const [showNewGame, setShowNewGame] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const { isLandscape, viewportWidth, viewportHeight } = useLayout();
+  const {
+    isLandscape,
+    viewportWidth,
+    viewportHeight,
+    deviceCategory,
+    layoutMode,
+    portraitMax,
+    landscapeMax,
+  } = useLayout();
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { setIsClient(true); }, []);
@@ -61,20 +69,83 @@ export default function Page() {
 
   const MIN_BOARD_WIDTH = 200;
 
-  const { landscapeBoardWidth, landscapeHeaderWidth, shouldShowLandscape } = useMemo(() => {
-    const lbw = isLandscape && viewportWidth > 0 && viewportHeight > 0
-      ? Math.min(
-          viewportHeight - 160,
-          (viewportWidth - 48) / 2,
-          432,
-        )
-      : undefined;
+  // Compute layout-specific dimensions based on mode and category
+  const {
+    landscapeBoardWidth,
+    landscapeHeaderWidth,
+    shouldShowLandscape,
+    portraitBoardWidth,
+    scaleFactor,
+  } = useMemo(() => {
+    const pm = portraitMax ?? 432;
+    const lm = landscapeMax ?? 560;
+
+    // Landscape: compute board width based on layout mode
+    let lbw: number | undefined = undefined;
+    if (isLandscape && viewportWidth > 0 && viewportHeight > 0) {
+      // Right column minimum: 120px (controls + number pad)
+      const rightColumnMin = 120;
+      lbw = Math.min(
+        viewportHeight - 160,
+        (viewportWidth - 48 - rightColumnMin) / 2,
+        lm,
+      );
+    }
+
+    const shouldShowLandscape = lbw !== undefined && lbw >= MIN_BOARD_WIDTH;
+
+    // Compute scaleFactor for both modes (portrait and landscape)
+    let sf: number = 1;
+    let pbw: number | undefined = undefined;
+
+    if (isLandscape) {
+      // Landscape: scaleFactor from landscape board width
+      sf = lbw !== undefined ? lbw / 432 : 1;
+
+      // If landscape mode can't show (too narrow), calculate a portrait fallback
+      // that respects the narrow viewport height
+      if (!shouldShowLandscape) {
+        // When landscape isn't viable, compute a portrait board that fits in the narrow height
+        // The board is square: boardWidth = boardHeight
+        // Available height for board = viewportHeight - header(~40) - controls/numPad(~80) - gaps (~40)
+        const boardMaxHeight = viewportHeight - 160;
+        const maxBoardWidth = viewportWidth * 0.9 - 16;
+        // The board must fit within the viewport height
+        // Use the minimum of max height and available width, clamped to category min/max
+        const effectiveMax = Math.min(boardMaxHeight, maxBoardWidth);
+        pbw = Math.max(effectiveMax, 200); // never below minimum board
+        pbw = Math.min(pbw, pm); // respect category max
+        sf = pbw / 432;
+      }
+    } else {
+      // Portrait
+      if (viewportWidth > 0) {
+        if (layoutMode === 'widePortrait') {
+          // Wide portrait (tablet/desktop): board fills width minus 10% padding (5% each side)
+          const availableWidth = viewportWidth - (viewportWidth * 0.1);
+          pbw = Math.min(availableWidth, pm);
+          sf = pbw / 432;
+        } else {
+          // Narrow portrait (phone): board centered, up to category max
+          const availableWidth = viewportWidth * 0.9 - 16;
+          pbw = Math.min(Math.max(availableWidth, 320), pm);
+          sf = pbw / 432;
+        }
+      } else {
+        // SSR fallback: use 432px (scaleFactor = 1)
+        pbw = 432;
+        sf = 1;
+      }
+    }
+
     return {
       landscapeBoardWidth: lbw,
-      landscapeHeaderWidth: lbw ? lbw + 248 : undefined,
-      shouldShowLandscape: lbw !== undefined && lbw >= MIN_BOARD_WIDTH,
+      landscapeHeaderWidth: lbw ? lbw + 232 : undefined,
+      shouldShowLandscape,
+      portraitBoardWidth: pbw,
+      scaleFactor: sf,
     };
-  }, [isLandscape, viewportWidth, viewportHeight]);
+  }, [isLandscape, viewportWidth, viewportHeight, layoutMode, portraitMax, landscapeMax]);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   // On mount: resume the saved game, or start a fresh one. Every game-starting
@@ -286,6 +357,12 @@ export default function Page() {
     [isClient],
   );
 
+  // Compute portrait number pad container width (matches board width)
+  const portraitContainerWidth = portraitBoardWidth;
+
+  // Landscape number pad button size: boardWidth / 3 (for 3x3 grid), clamped to category min/max
+  const landscapeButtonSize = landscapeBoardWidth ? landscapeBoardWidth / 3 : 72;
+
   return (
     <main
       className="flex flex-1 flex-col items-center gap-6 py-10"
@@ -317,12 +394,14 @@ export default function Page() {
               onGestureStart={onGestureStart}
               onGestureEnd={onGestureEnd}
               width={landscapeBoardWidth}
+              scaleFactor={scaleFactor}
             />
           </div>
           <div className="flex flex-col items-center gap-4">
             <Controls
               notesMode={effectiveNotesMode(state)}
               maxWidth={232}
+              scaleFactor={scaleFactor}
               onToggleNotesMode={() =>
                 setState((s) => {
                   if (!s.cellSelectionMode) {
@@ -340,7 +419,9 @@ export default function Page() {
             />
             <NumberPad
               layout="landscape"
-              buttonSize={72}
+              buttonSize={landscapeButtonSize}
+              scaleFactor={scaleFactor}
+              category={deviceCategory as 'smallPhone' | 'normalPhone' | 'largePhone' | 'ipadMini' | 'ipadAir' | 'ipadPro' | 'desktop'}
               notesMode={effectiveNotesMode(state)}
               onPlace={padOnPlace}
               onToggleNote={padOnToggleNote}
@@ -353,6 +434,7 @@ export default function Page() {
         <>
           <Controls
             notesMode={effectiveNotesMode(state)}
+            scaleFactor={scaleFactor}
             onToggleNotesMode={() =>
               setState((s) => {
                 if (!s.cellSelectionMode) {
@@ -375,11 +457,14 @@ export default function Page() {
             onClearSelection={() => commit(clearSelection)}
             onGestureStart={onGestureStart}
             onGestureEnd={onGestureEnd}
-            width={432}
+            width={portraitBoardWidth}
+            scaleFactor={scaleFactor}
           />
           <NumberPad
             layout="portrait"
-            portraitContainerWidth={432}
+            portraitContainerWidth={portraitContainerWidth}
+            scaleFactor={scaleFactor}
+            category={deviceCategory as 'smallPhone' | 'normalPhone' | 'largePhone' | 'ipadMini' | 'ipadAir' | 'ipadPro' | 'desktop'}
             notesMode={effectiveNotesMode(state)}
             onPlace={padOnPlace}
             onToggleNote={padOnToggleNote}

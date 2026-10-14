@@ -12,6 +12,7 @@ interface BoardProps {
   onGestureStart: () => void;
   onGestureEnd: () => void;
   width?: number;
+  scaleFactor?: number;
 }
 
 function cellIndexAt(x: number, y: number): number | null {
@@ -31,6 +32,7 @@ export function Board({
   onGestureStart,
   onGestureEnd,
   width,
+  scaleFactor = 1,
 }: BoardProps) {
   const highlights = state.cellSelectionMode ? null : computeHighlights(state);
 
@@ -117,10 +119,23 @@ export function Board({
     };
   }, []);
 
+  // Scale outer border: 4px * scaleFactor, clamped 2–6px
+  const outerBorderWidth = Math.max(8, Math.min(12, 4 * scaleFactor));
+
+  const cellSize = width ? width / 9 : 48;
+
   return (
     <div
-      className="grid w-[min(90vw,432px)] touch-none grid-cols-9 rounded border-4 border-accent shadow-md"
-      style={width ? { width: `${width}px`, height: `${width}px` } : undefined}
+      className="touch-none grid grid-cols-9 shadow-md"
+      style={{
+        width: width ? `${width}px` : "min(90vw, 432px)",
+        height: width ? `${width}px` : undefined,
+        gridTemplateColumns: "repeat(9, 1fr)",
+        borderWidth: `${outerBorderWidth}px`,
+        borderStyle: "solid",
+        borderColor: "var(--color-accent)",
+        borderRadius: "0.5rem",
+      }}
       role="grid"
       aria-label="Sudoku board"
       onPointerDown={handlePointerDown}
@@ -140,6 +155,7 @@ export function Board({
           selectedValue={state.board[state.selected ?? -1] ?? 0}
           isInSelection={state.selectedCells.includes(index)}
           inSelectionMode={state.cellSelectionMode}
+          scaleFactor={scaleFactor}
         />
       ))}
     </div>
